@@ -1,10 +1,11 @@
 name = "PatelM4R"
 uuid = "7a8285a9-ad55-42d6-a43c-00b290010328"
-authors = ["Sheehan Olver <solver@mac.com>"]
+authors = ["Sheehan Olver <solver@mac.com>", "Jayshiv Patel <jayshivpatel@hotmail.co.uk>"]
 version = "0.1.0"
 
 [deps]
 ClassicalOrthogonalPolynomials = "b30e2e7b-c4ee-47da-9d5f-2c5c27239acd"
+ContinuumArrays = "7ae1f121-cc2c-504b-ac30-9b923412ae5c"
 InfiniteArrays = "4858937d-0d70-526a-a4dd-2d5cb5dd786c"
 Plots = "91a5bcdd-55d7-5caf-9e0b-520d859cae80"
 SingularIntegrals = "d7440221-8b5e-42fc-909c-0567823f424a"
@@ -12,6 +13,7 @@ Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [compat]
 ClassicalOrthogonalPolynomials = "0.13.7"
+ContinuumArrays = "0.18.5"
 InfiniteArrays = "0.14.3"
 Plots = "1.40.9"
 SingularIntegrals = "0.3.3"
