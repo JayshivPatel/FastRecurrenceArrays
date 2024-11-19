@@ -11,10 +11,13 @@ f = expand(P, λ -> λ^2);
 # Choose a point of evaluation x₀:
 x₀ = -1.5;
 
-# Use the logkernel to evaluate ∫₋₁¹ log (x₀ - x²) dx 
+# Use the logkernel to evaluate ∫₋₁¹ log (x₀ - x) * x² dx 
 @test log.(abs.(x₀ .- x_axis')) * f == logkernel(f, x₀) == logkernel(P, x₀) * coefficients(f);
 
 # Ordered by slowest ⟹ largest
 @time log.(abs.(x₀ .- x_axis')) * f;
 @time logkernel(P, x₀) * coefficients(f);
 @time logkernel(f, x₀);
+
+# Verify correctness using a riemann sum approximation
+@test logkernel(f, x₀) ≈ sum(@.(log(abs(x₀ - x_axis)) * x_axis^2))
