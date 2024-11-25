@@ -1,5 +1,8 @@
+module FixedRecurrenceArrays
+
 import RecurrenceRelationships: forwardrecurrence_next, forwardrecurrence_partial!
 import Base: size, show, string, tail
+export FixedRecurrenceArray
 
 mutable struct FixedRecurrenceArray{T,N,ZZ,AA<:AbstractVector,BB<:AbstractVector,CC<:AbstractVector} <: AbstractArray{T,N}
     z::ZZ
@@ -107,3 +110,5 @@ function show(io::IO, ::MIME"text/plain", x::FixedRecurrenceArray)
     )
     show(io, MIME"text/plain"(), x.data)
 end
+
+end # FixedRecurrenceArrays

@@ -1,25 +1,10 @@
-name = "PatelM4R"
-uuid = "7a8285a9-ad55-42d6-a43c-00b290010328"
-authors = ["Sheehan Olver <solver@mac.com>", "Jayshiv Patel <jayshivpatel@hotmail.co.uk>"]
+name = "FixedRecurrenceArrays"
+uuid = "c15e842d-fddf-409a-8e3c-800a0c0c0afd"
+authors = ["Jayshiv Patel <jayshivpatel@hotmail.co.uk>"]
 version = "0.1.0"
 
 [deps]
-ClassicalOrthogonalPolynomials = "b30e2e7b-c4ee-47da-9d5f-2c5c27239acd"
-ContinuumArrays = "7ae1f121-cc2c-504b-ac30-9b923412ae5c"
-FillArrays = "1a297f60-69ca-5386-bcde-b61e274b549b"
-InfiniteArrays = "4858937d-0d70-526a-a4dd-2d5cb5dd786c"
-Plots = "91a5bcdd-55d7-5caf-9e0b-520d859cae80"
-RecurrenceRelationshipArrays = "b889d2dc-af3c-4820-88a8-238fa91d3518"
 RecurrenceRelationships = "807425ed-42ea-44d6-a357-6771516d7b2c"
-SingularIntegrals = "d7440221-8b5e-42fc-909c-0567823f424a"
-Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [compat]
-ClassicalOrthogonalPolynomials = "0.13.7"
-ContinuumArrays = "0.18.5"
-FillArrays = "1.13.0"
-InfiniteArrays = "0.14.3"
-Plots = "1.40.9"
 RecurrenceRelationships = "0.1.0"
-SingularIntegrals = "0.3.3"
-Test = "1.11.0"

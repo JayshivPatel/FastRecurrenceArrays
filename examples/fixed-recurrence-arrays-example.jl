@@ -1,5 +1,4 @@
-include("FixedRecurrenceArrays.jl");
-
+using FixedRecurrenceArrays;
 
 z = [0.1+0im, 1.0001, 10.0];
 
