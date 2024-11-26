@@ -1,114 +1,91 @@
 module FixedRecurrenceArrays
 
 import RecurrenceRelationships: forwardrecurrence_next, forwardrecurrence_partial!
-import Base: size, show, string, tail
+import RecurrenceRelationshipArrays: initiateforwardrecurrence
+import Base: size, show, string, tail, getindex
 export FixedRecurrenceArray
 
+# struct
 mutable struct FixedRecurrenceArray{T,N,ZZ,AA<:AbstractVector,BB<:AbstractVector,CC<:AbstractVector} <: AbstractArray{T,N}
-    z::ZZ
-    A::AA
-    B::BB
-    C::CC
+    z::ZZ # evaluation point
+    A::AA # 3-term-recurrence A
+    B::BB # 3-term-recurrence B
+    C::CC # 3-term-recurrence C
     data::Array{T,N}
-    datasize::NTuple{N,Int}
-    p0::Vector{T} # stores p_{s-1} to determine when to switch to backward
-    p1::Vector{T} # stores p_{s} to determine when to switch to backward
-    u::Vector{T} # used for backsubstitution to store diagonal of U in LU
+    n::Integer # number of recurrences
 end
+
+# types
 
 const FixedRecurrenceVector{T,A<:AbstractVector,B<:AbstractVector,C<:AbstractVector} = 
     FixedRecurrenceArray{T,1,T,A,B,C}
 const FixedRecurrenceMatrix{T,Z<:AbstractVector,A<:AbstractVector,B<:AbstractVector,C<:AbstractVector} = 
     FixedRecurrenceArray{T,2,Z,A,B,C}
 
-FixedRecurrenceArray(z, A, B, C, data::Array{T,N}, datasize, p0, p1) where {T,N} = 
-    FixedRecurrenceArray{T,N,typeof(z),typeof(A),typeof(B),typeof(C)}(z, A, B, C, data, datasize, p0, p1, T[])
+FixedRecurrenceArray(z, A, B, C, data::Array{T,N}, n) where {T,N} = 
+    FixedRecurrenceArray{T,N,typeof(z),typeof(A),typeof(B),typeof(C)}(z, A, B, C, data, n)
 
-function initiateforwardrecurrence(N, A, B, C, x, μ)
-    T = promote_type(eltype(A), eltype(B), eltype(C), typeof(x))
-    p0 = convert(T, μ)
-    N == 0 && return zero(T), p0
-    p1 = convert(T, muladd(A[1], x, B[1]) * p0)
-    @inbounds for n = 2:N
-        p1, p0 = forwardrecurrence_next(n, A, B, C, x, p0, p1), p1
-    end
-    return p0, p1
+# constructors
+
+function FixedRecurrenceArray(z::Number, (A, B, C), input_data::AbstractVector{T}, n::Integer) where {T}
+    N = length(input_data)
+
+    # allocate a fixed size output array
+    output_data = similar(input_data, n)
+
+    # copy the initial data to the output
+    output_data[axes(input_data)...] = input_data
+
+    # calculate and populate recurrence
+    populateforwardrecurrence!(N, output_data, z, (A, B, C), n)
+
+    return FixedRecurrenceVector{T,typeof(A),typeof(B),typeof(C)}(z, A, B, C, output_data, n)
 end
 
-function populateforwardrecurrence(K::FixedRecurrenceArray, n::Integer)
-    v = K.datasize[1]
+function FixedRecurrenceArray(z::AbstractVector, (A, B, C), input_data::AbstractMatrix{T}, n::Integer) where {T}
+    M, N = size(input_data)
 
-    if size(K.data, 2) > 1
-        _growdata!(K, n, size(K.data, 2)...)
-    else
-        _growdata!(K, n)
-    end
+    # allocate a fixed size output matrix
+    output_data = similar(input_data, n, N)
 
-    A,B,C = K.A,K.B,K.C
-    for j = axes(K.z,1)
-        z = K.z[j]
-        p0, p1 = K.p0[j], K.p1[j]
-        k = v
-        while k < n
-            p1, p0 = forwardrecurrence_next(k, A, B, C, z, p0, p1), p1
-            k += 1
-        end
-        K.p0[j], K.p1[j] = p0, p1
+    # copy the initial data to the output
+    output_data[axes(input_data)...] = input_data
 
-        forwardrecurrence_partial!(view(K.data,:,j), A, B, C, z, v:k)
-    end
+    # calculate and populate recurrence
+    populateforwardrecurrence!(M, output_data, z, (A, B, C), n)
 
-    K.datasize = (max(K.datasize[1],n), tail(K.datasize)...)
+    return FixedRecurrenceMatrix{T,typeof(z),typeof(A),typeof(B),typeof(C)}(z, A, B, C, output_data, n)
 end
 
-function FixedRecurrenceArray(z::Number, (A, B, C), data::AbstractVector{T}, n::Integer) where {T}
-    N = length(data)
-    p0, p1 = initiateforwardrecurrence(N, A, B, C, z, one(z))
-    if iszero(p1)
-        p1 = one(p1) # avoid degeneracy in recurrence. Probably needs more thought
-    end
-    K = FixedRecurrenceVector{T,typeof(A),typeof(B),typeof(C)}(z, A, B, C, data, size(data), T[p0], T[p1], T[])
-    populateforwardrecurrence(K, n)
-    return K
-end
+function createFixedRecurrenceArray()
 
-function FixedRecurrenceArray(z::AbstractVector, (A, B, C), data::AbstractMatrix{T}, n::Integer) where {T}
-    M, N = size(data)
-    p0 = Vector{T}(undef, N)
-    p1 = Vector{T}(undef, N)
-    for j = axes(z, 1)
-        p0[j], p1[j] = initiateforwardrecurrence(M, A, B, C, z[j], one(T))
-        if iszero(p1[j])
-            p1[j] = one(p1[j]) # avoid degeneracy in recurrence. Probably needs more thought
-        end
-    end
-    K = FixedRecurrenceMatrix{T,typeof(z),typeof(A),typeof(B),typeof(C)}(z, A, B, C, data, size(data), p0, p1, T[])
-    populateforwardrecurrence(K, n)
-    return K
-end
+# properties and access
 
-size(R::FixedRecurrenceVector) = (size(R.data, 1))
-size(R::FixedRecurrenceMatrix) = (size(R.data, 1), size(R.data, 2))
-copy(R::FixedRecurrenceArray) = R # immutable entries
+size(K::FixedRecurrenceVector) = (K.n, )
+size(K::FixedRecurrenceMatrix) = (K.n, size(K.data)[2])
+copy(K::FixedRecurrenceArray) = K # immutable entries
+getindex(K::FixedRecurrenceArray, index...) = K.data[index...]
 
-function _growdata!(B::AbstractArray{<:Any,N}, nm::Vararg{Integer,N}) where N
-    # increase size of array if necessary
-    olddata = B.data
-    νμ = size(olddata)
-    nm = max.(νμ,nm)
-    if νμ ≠ nm
-        B.data = similar(B.data, nm...)
-        B.data[axes(olddata)...] = olddata
-    end
-end
+# display
 
-function show(io::IO, ::MIME"text/plain", x::FixedRecurrenceArray)
+function show(io::IO, ::MIME"text/plain", K::FixedRecurrenceArray)
+    s = size(K)
     println(
         io, 
-        string(x.datasize[1]) * "×" * (length(x.datasize) > 1 ? string(x.datasize[2]) : string(1)) * " " * 
-        string(typeof(x)) * ":"
+        string(s[1]) * "×" * (length(s) > 1 ? string(s[2]) : string(1)) * " " * 
+        string(typeof(K)) * ":"
     )
-    show(io, MIME"text/plain"(), x.data)
+    show(io, MIME"text/plain"(), K.data)
+end
+
+# population
+
+function populateforwardrecurrence!(start_index::Integer, output_data::Array{T, N}, 
+    z::Union{T, Vector{T}}, (A, B, C), n::Integer) where {T, N}
+    for j = axes(z,1)
+        zⱼ = z[j]
+        forwardrecurrence_partial!(view(output_data,:,j), A, B, C, zⱼ, start_index:n)
+    end
 end
 
 end # FixedRecurrenceArrays
