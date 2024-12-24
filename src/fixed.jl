@@ -1,7 +1,7 @@
-import RecurrenceRelationships: forwardrecurrence_next, forwardrecurrence_partial!;
-import RecurrenceRelationshipArrays: initiateforwardrecurrence;
-import Base: size, show, string, tail, getindex;
-export FixedRecurrenceArray;
+import RecurrenceRelationships: forwardrecurrence_next, forwardrecurrence_partial!
+import RecurrenceRelationshipArrays: initiateforwardrecurrence
+import Base: size, show, string, tail, getindex
+export FixedRecurrenceArray
 
 # struct
 mutable struct FixedRecurrenceArray{T,N,ZZ,AA<:AbstractVector,BB<:AbstractVector,CC<:AbstractVector} <: AbstractArray{T,N}
@@ -26,7 +26,8 @@ FixedRecurrenceArray(z, A, B, C, data::Array{T,N}, n) where {T,N} =
 # constructors
 
 function FixedRecurrenceArray(z::Number, (A, B, C), input_data::AbstractVector{T},
-        n::Integer, populate::Function=defaultforwardrecurrence!) where {T}
+    n::Integer, populate::Function=defaultforwardrecurrence!) where {T}
+    
     N = length(input_data)
 
     # allocate a fixed size output array
@@ -42,7 +43,8 @@ function FixedRecurrenceArray(z::Number, (A, B, C), input_data::AbstractVector{T
 end
 
 function FixedRecurrenceArray(z::AbstractVector, (A, B, C), input_data::AbstractMatrix{T},
-        n::Integer, populate::Function=defaultforwardrecurrence!) where {T}
+    n::Integer, populate::Function=defaultforwardrecurrence!) where {T}
+
     M, N = size(input_data)
 
     # allocate a fixed size output matrix
@@ -59,10 +61,10 @@ end
 
 # properties and access
 
-size(K::FixedRecurrenceVector) = (K.n,);
-size(K::FixedRecurrenceMatrix) = (K.n, size(K.data)[2]);
-copy(K::FixedRecurrenceArray) = K; # immutable entries
-getindex(K::FixedRecurrenceArray, index...) = K.data[index...];
+size(K::FixedRecurrenceVector) = (K.n,)
+size(K::FixedRecurrenceMatrix) = (K.n, size(K.data)[2])
+copy(K::FixedRecurrenceArray) = K # immutable entries
+getindex(K::FixedRecurrenceArray, index...) = K.data[index...]
 
 # display
 
@@ -79,7 +81,8 @@ end
 # population
 
 function defaultforwardrecurrence!(start_index::Integer, output_data::Array{T,N},
-        z, (A, B, C), n::Integer) where {T,N}
+    z, (A, B, C), n::Integer) where {T,N}
+
     for j = axes(z, 1)
         zⱼ = z[j]
         forwardrecurrence_partial!(view(output_data, :, j), A, B, C, zⱼ, start_index:n)

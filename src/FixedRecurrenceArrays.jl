@@ -1,7 +1,7 @@
 module FixedRecurrenceArrays
 
-include("fixed.jl");
-include("threaded.jl");
-include("partitioned.jl");
+include("fixed.jl")
+include("threaded.jl")
+include("distributed.jl")
 
 end # FixedRecurrenceArrays
