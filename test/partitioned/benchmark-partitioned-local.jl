@@ -1,6 +1,7 @@
 using BenchmarkTools, BenchmarkPlots, 
-    StatsPlots, InfiniteArrays, Distributed, Test;
+    StatsPlots, InfiniteArrays, Distributed, Test
 
+# add remote processes created with Docker
 addprocs(2);
 
 # activate the M4R environment 
@@ -30,8 +31,8 @@ rec_P = (1:10000), (1:2:20000), -1 * (1:10000);
 stieltjes_matrix = @. inv(z + sign(z) * sqrt(z^2 - 1));
 
 # distributed
-matrix_result = @benchmarkable DistributedFixedRecurrenceArray(z, rec_P, [stieltjes_matrix'; stieltjes_matrix' .^ 2], N) samples = 20 evals = 1 seconds = 60;
+matrix_result = @benchmarkable PartitionedFixedRecurrenceArray(z, rec_P, [stieltjes_matrix'; stieltjes_matrix' .^ 2], N) samples = 20 evals = 1 seconds = 60;
 
 matrix_display = run(matrix_result);
-println("DistributedFixedRecurrenceArray - " * string(N) * "×" * string(M));
+println("PartitionedFixedRecurrenceArray - " * string(N) * "×" * string(M));
 display(matrix_display);

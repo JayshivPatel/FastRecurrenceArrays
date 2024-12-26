@@ -3,12 +3,7 @@ import RecurrenceRelationships: forwardrecurrence_next, forwardrecurrence_partia
 
 export ThreadedFixedRecurrenceArray;
 
-# constructors
-
-function ThreadedFixedRecurrenceArray(z::Number, (A, B, C), input_data::AbstractVector{T}, n::Integer) where {T}
-    return FixedRecurrenceArray(z, (A, B, C), input_data, n)
-end
-
+# constructor
 
 function ThreadedFixedRecurrenceArray(z::AbstractVector, (A, B, C), input_data::AbstractMatrix{T}, n::Integer) where {T}
     return FixedRecurrenceArray(z, (A, B, C), input_data, n, multithreadedforwardrecurrence!)
