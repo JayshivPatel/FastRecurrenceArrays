@@ -40,14 +40,16 @@ function DistributedFixedRecurrenceArray(z::AbstractVector, (A, B, C),
         [(1:M)[i:min(i + num_vectors_per_worker - 1, end)] for i in 1:num_vectors_per_worker:M]
 
     # distribute the population on the available workers
-    for (worker_index, worker) in enumerate(workers)
-        local_input_data = input_data[:, partitions[worker_index]]
-        local_z = z[partitions[worker_index]]
-        save_at(
-            worker,
-            :DistributedFixedRecurrenceArray_LOCAL,
-            FixedRecurrenceArray(local_z, (A, B, C), local_input_data, n)
-        )
+    @sync for (worker_index, worker) in enumerate(workers)
+        @async begin
+            local_input_data = input_data[:, partitions[worker_index]]
+            local_z = z[partitions[worker_index]]
+            save_at(
+                worker,
+                :DistributedFixedRecurrenceArray_LOCAL,
+                FixedRecurrenceArray(local_z, (A, B, C), local_input_data, n)
+            )
+        end
     end
 
     return DistributedFixedRecurrenceArray{T,typeof(A),typeof(B),typeof(C)}(A, B, C, workers, partitions, n, M)
