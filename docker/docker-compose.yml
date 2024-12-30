@@ -1,0 +1,30 @@
+services:
+  worker_1:
+    image: julia
+    build: .
+    deploy:
+      resources:
+        limits:
+          memory: 8g
+          cpus: 4.0
+    ports:
+      - "2222:22"
+    networks:
+      - app-network
+
+  worker_2:
+    image: julia
+    build: .
+    deploy:
+      resources:
+        limits:
+          memory: 8g
+          cpus: 4.0
+    ports:
+      - "2223:22"
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
