@@ -2,10 +2,10 @@ using FixedRecurrenceArrays, BenchmarkTools, BenchmarkPlots,
     StatsPlots, InfiniteArrays
 
 # choose points inside the domain: (make complex)
-z_in = (-1.0:0.0005:1.0) .+ 0 * im;
+z_in = (-1.0:0.05:1.0) .+ 0 * im;
 
 # choose points outside the domain:
-z_out = (1.0:0.0005:2.0);
+z_out = (1.0:0.05:2.0);
 
 z = [z_in; z_out];
 
@@ -13,7 +13,7 @@ z = [z_in; z_out];
 M = length(z);
 
 # num recurrences
-N = 10000;
+N = 100000;
 
 # recurrence coefficients for Legendre
 rec_P = (1:10000), (1:2:20000), -1 * (1:10000);

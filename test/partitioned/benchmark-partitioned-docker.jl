@@ -12,10 +12,10 @@ addprocs(["root@localhost"]; tunnel=true, sshflags=["-p", "2223", "-o", "StrictH
 @everywhere using FixedRecurrenceArrays;
 
 # choose points inside the domain: (make complex)
-z_in = (-1.0:0.0005:1.0) .+ 0 * im;
+z_in = (-1.0:0.00005:1.0) .+ 0 * im;
 
 # choose points outside the domain:
-z_out = (1.0:0.0005:2.0);
+z_out = (1.0:0.00005:2.0);
 
 z = [z_in; z_out];
 
