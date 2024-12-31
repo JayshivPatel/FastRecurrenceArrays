@@ -14,7 +14,7 @@ addprocs(["root@localhost"]; tunnel=true, sshflags=["-p", "2223", "-o", "StrictH
 z_in = (-1.0:0.005:1.0) .+ 0 * im;
 
 # choose points outside the domain:
-z_out = (10.0:0.005:20.0);
+z_out = (10.0:0.005:50.0);
 
 z = [z_in; z_out];
 
@@ -32,8 +32,8 @@ stieltjes_matrix = @. inv(z + sign(z) * sqrt(z^2 - 1));
 
 # distributed
 
-matrix_result = @benchmarkable PartitionedFixedRecurrenceArray(z, rec_P, [stieltjes_matrix'; stieltjes_matrix' .^ 2], N) samples = 100 evals = 1 seconds = 600;
+matrix_result = @benchmarkable PartitionedFixedRecurrenceArray(z, rec_P, [stieltjes_matrix'; stieltjes_matrix' .^ 2], N) samples = 1000 evals = 1 seconds = 600;
 
-matrix_display = run(matrix_result);
+matrix_display = run(matrix_result, verbose=true);
 println("PartitionedFixedRecurrenceArray - " * string(N) * "×" * string(M));
 display(matrix_display);

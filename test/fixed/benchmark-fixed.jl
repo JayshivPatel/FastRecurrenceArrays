@@ -4,7 +4,7 @@ using FixedRecurrenceArrays, BenchmarkTools, BenchmarkPlots, StatsPlots
 z_in = (-1.0:0.005:1.0) .+ 0 * im;
 
 # choose points outside the domain:
-z_out = (10.0:0.005:20.0);
+z_out = (10.0:0.005:50.0);
 
 z = [z_in; z_out];
 
@@ -22,8 +22,8 @@ stieltjes = inv(z[1] + sign(z[1]) * sqrt(z[1]^2 - 1));
 stieltjes_matrix = @. inv(z + sign(z) * sqrt(z^2 - 1));
 
 # fixed
-vector_result = @benchmarkable FixedRecurrenceArray(z[1], rec_P, [stieltjes, stieltjes^ 2], N) samples = 10000 evals = 1 seconds = 600;
-matrix_result = @benchmarkable FixedRecurrenceArray(z, rec_P, [stieltjes_matrix'; stieltjes_matrix' .^ 2], N) samples = 100 evals = 1 seconds = 600;
+vector_result = @benchmarkable FixedRecurrenceArray(z[1], rec_P, [stieltjes, stieltjes^ 2], N) samples = 1000 evals = 1 seconds = 600;
+matrix_result = @benchmarkable FixedRecurrenceArray(z, rec_P, [stieltjes_matrix'; stieltjes_matrix' .^ 2], N) samples = 1000 evals = 1 seconds = 600;
 
 vector_display = run(vector_result);
 println("FixedRecurrenceVector - " * string(N) * "×" * string(1));
