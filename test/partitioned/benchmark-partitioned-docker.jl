@@ -1,4 +1,4 @@
-using BenchmarkTools, BenchmarkPlots, StatsPlots, Distributed;
+using BenchmarkTools, BenchmarkPlots, Distributed;
 
 # add remote processes created with Docker
 addprocs(["root@localhost"]; tunnel=true, sshflags=["-p", "2222", "-o", "StrictHostKeyChecking=no"], exename="/usr/local/julia/bin/julia", dir="/tmp/M4R");
@@ -34,6 +34,35 @@ stieltjes_matrix = @. inv(z + sign(z) * sqrt(z^2 - 1));
 
 matrix_result = @benchmarkable PartitionedFixedRecurrenceArray(z, rec_P, [stieltjes_matrix'; stieltjes_matrix' .^ 2], N) samples = 1000 evals = 1 seconds = 600;
 
-matrix_display = run(matrix_result, verbose=true);
-println("PartitionedFixedRecurrenceArray - " * string(N) * "×" * string(M));
-display(matrix_display);
+function run_benchmark()
+    matrix_display = run(matrix_result, verbose=true)
+    println("PartitionedFixedRecurrenceArray - " * string(N) * "×" * string(M))
+    println("Workers: " * string(length(workers())))
+    display(matrix_display)
+end
+
+run_benchmark()
+
+addprocs(["root@localhost"]; tunnel=true, sshflags=["-p", "2224", "-o", "StrictHostKeyChecking=no"], exename="/usr/local/julia/bin/julia", dir="/tmp/M4R");
+@everywhere (import Pkg; Pkg.activate("."); Pkg.instantiate());
+@everywhere using FixedRecurrenceArrays;
+
+run_benchmark()
+
+addprocs(["root@localhost"]; tunnel=true, sshflags=["-p", "2225", "-o", "StrictHostKeyChecking=no"], exename="/usr/local/julia/bin/julia", dir="/tmp/M4R");
+@everywhere (import Pkg; Pkg.activate("."); Pkg.instantiate());
+@everywhere using FixedRecurrenceArrays;
+
+run_benchmark()
+
+addprocs(["root@localhost"]; tunnel=true, sshflags=["-p", "2226", "-o", "StrictHostKeyChecking=no"], exename="/usr/local/julia/bin/julia", dir="/tmp/M4R");
+@everywhere (import Pkg; Pkg.activate("."); Pkg.instantiate());
+@everywhere using FixedRecurrenceArrays;
+
+run_benchmark()
+
+addprocs(["root@localhost"]; tunnel=true, sshflags=["-p", "2227", "-o", "StrictHostKeyChecking=no"], exename="/usr/local/julia/bin/julia", dir="/tmp/M4R");
+@everywhere (import Pkg; Pkg.activate("."); Pkg.instantiate());
+@everywhere using FixedRecurrenceArrays;
+
+run_benchmark()

@@ -39,47 +39,39 @@ function PartitionedFixedRecurrenceArray(z::AbstractVector, (A, B, C),
     partitions =
         [(1:M)[i:min(i + num_vectors_per_worker - 1, end)] for i in 1:num_vectors_per_worker:M]
 
-    # distribute the population on the available workers
-    @sync for (worker_index, worker) in enumerate(workers)
-        @async begin
-            # copy the local points and input data
-            fetch(save_at(
+    # copy the data onto the workers (no quote to evaluate on main process worker local data to send)
+    # sync
+    map(
+        fetch,
+        # async
+        [save_at(
                 worker,
-                :_LOCAL_z,
-                # no quote to only send the local points
-                z[partitions[worker_index]]
-            ))
+                :_LOCAL_DATA,
+                Dict(
+                    "z" => z[partitions[worker_index]],
+                    "A_B_C" => (A, B, C),
+                    "input_data" => input_data[:, partitions[worker_index]],
+                    "N" => n
+                )
+        ) for (worker_index, worker) in enumerate(workers)]
+    )
 
-            fetch(save_at(
-                worker,
-                :_LOCAL_input_data,
-                # no quote to only send the local input data
-                input_data[:, partitions[worker_index]]
+    # distribute the population
+    # sync
+    map(fetch,
+        # async
+        [save_at(
+            worker,
+            :LOCAL_Fixed_Recurrence_Array,
+            # quote to evaluate locally on the worker process
+            :(FixedRecurrenceArray(
+                _LOCAL_DATA["z"],
+                _LOCAL_DATA["A_B_C"],
+                _LOCAL_DATA["input_data"],
+                _LOCAL_DATA["N"]
             ))
-
-            # copy the coefficients and number of recurrences
-            fetch(save_at(
-                worker,
-                :_LOCAL_A_B_C,
-                (A, B, C)
-            ))
-
-            fetch(save_at(
-                worker,
-                :_LOCAL_N,
-                n
-            ))
-
-            # async
-            # populate locally on the worker
-            save_at(
-                worker,
-                :LOCAL_Fixed_Recurrence_Array,
-                # quote to evaluate on the worker
-                :(FixedRecurrenceArray(_LOCAL_z, _LOCAL_A_B_C, _LOCAL_input_data, _LOCAL_N))
-            )
-        end
-    end
+        ) for worker in workers]
+    )
 
     return PartitionedFixedRecurrenceArray{T,typeof(A),typeof(B),typeof(C)}(A, B, C, workers, partitions, n, M)
 end
@@ -89,51 +81,29 @@ end
 size(K::PartitionedFixedRecurrenceArray) = (K.N, K.M)
 copy(K::PartitionedFixedRecurrenceArray) = K # immutable entries
 
+function getindex(K::PartitionedFixedRecurrenceArray{T}, i, j) where {T}
 
-function getindex(K::PartitionedFixedRecurrenceArray, i, j::Int)
-    worker, local_j = global_to_local(K, j)
-    
-    # copy the local indexes
-    save_at(worker, :LOCAL_i, i)
-    save_at(worker, :LOCAL_j, local_j)
-    
-    return get_val_from(worker, :(LOCAL_Fixed_Recurrence_Array[LOCAL_i, LOCAL_j]))
-end
-
-function getindex(K::PartitionedFixedRecurrenceArray{T}, i, j::AbstractUnitRange) where {T}
+    i, j = indexes_to_ranges(K, i, j)
 
     workers, local_ranges = global_to_local(K, j)
 
-    if i == Colon()
-        result = zeros(T, (K.N, length(j)))
-    else
-        result = zeros(T, (length(i), length(j)))
-    end
+    result = zeros(T, (length(i), length(j)))
 
-    column = 1
+    column_count = 1
 
     for (worker, local_range) in zip(workers, local_ranges)
         # copy the local ranges
-        save_at(worker, :LOCAL_i, i)
-        save_at(worker, :LOCAL_j, local_range)
+        fetch(save_at(worker, :LOCAL_i, i))
+        fetch(save_at(worker, :LOCAL_j, local_range))
     
         local_values =  get_val_from(worker, :(LOCAL_Fixed_Recurrence_Array[LOCAL_i, LOCAL_j]))
 
-        result[i, column : column + length(local_range) - 1] = local_values
+        result[1:length(i), column_count : column_count + length(local_range) - 1] = local_values
+
+        column_count += length(local_range)
     end
     
     return result
-end
-
-function global_to_local(K::PartitionedFixedRecurrenceArray, column_index::Int)
-    for (worker, partition) in zip(K.workers, K.partitions)
-        if column_index in partition
-            # calculate the local column index within the partition
-            j_local = column_index - partition[1] + 1
-            
-            return (worker, j_local)
-        end
-    end
 end
 
 function global_to_local(K::PartitionedFixedRecurrenceArray, column_range::AbstractUnitRange)
@@ -152,6 +122,26 @@ function global_to_local(K::PartitionedFixedRecurrenceArray, column_range::Abstr
     end
 
     return (workers, local_ranges)
+end
+
+function indexes_to_ranges(K::PartitionedFixedRecurrenceArray, i, j)
+    return (convert_to_range(i, K.N), convert_to_range(j, K.M))
+end
+
+function convert_to_range(input, limit)
+    if isa(input, AbstractUnitRange)
+        if last(input) > limit || first(input) < 1
+            throw(BoundsError())
+        end
+        return input
+    elseif isa(input, Number)
+        if input > limit || input < 1
+            throw(BoundsError())
+        end
+        return input:input
+    elseif isa(input, Colon)
+        return 1:limit
+    end
 end
 
 # display

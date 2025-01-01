@@ -10,7 +10,6 @@ Distributed = "8ba89e20-285c-5b6f-9357-94700520ee1b"
 DistributedData = "f6a0035f-c5ac-4ad0-b410-ad102ced35df"
 RecurrenceRelationshipArrays = "b889d2dc-af3c-4820-88a8-238fa91d3518"
 RecurrenceRelationships = "807425ed-42ea-44d6-a357-6771516d7b2c"
-StatsPlots = "f3b207a7-027a-5e70-b257-86293d7955fd"
 
 [compat]
 BenchmarkPlots = "0.1.0"
@@ -19,4 +18,3 @@ Distributed = "1.11.0"
 DistributedData = "0.2.0"
 RecurrenceRelationshipArrays = "0.1.0"
 RecurrenceRelationships = "0.1.0"
-StatsPlots = "0.15.7"

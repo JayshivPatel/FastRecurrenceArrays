@@ -1,4 +1,4 @@
-using FixedRecurrenceArrays, BenchmarkTools, BenchmarkPlots, StatsPlots
+using FixedRecurrenceArrays, BenchmarkTools, BenchmarkPlots
 
 # choose points inside the domain: (make complex)
 z_in = (-1.0:0.005:1.0) .+ 0 * im;
