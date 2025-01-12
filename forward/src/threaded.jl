@@ -1,5 +1,4 @@
-import Base: size, show, getindex;
-import RecurrenceRelationships: forwardrecurrence_next, forwardrecurrence_partial!;
+import RecurrenceRelationships: forwardrecurrence_partial!;
 
 export ThreadedFixedRecurrenceArray;
 

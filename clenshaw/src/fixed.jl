@@ -3,6 +3,7 @@ import BandedMatrices: AbstractBandedMatrix, bandwidth
 import Base: copy, size, show, getindex
 
 export FixedClenshaw
+
 # struct
 
 struct FixedClenshaw{T,Coefs<:AbstractVector,AA<:AbstractVector,BB<:AbstractVector,CC<:AbstractVector,Jac<:Union{AbstractMatrix, AbstractVector}} <: AbstractBandedMatrix{T}

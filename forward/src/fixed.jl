@@ -1,4 +1,4 @@
-import RecurrenceRelationships: forwardrecurrence_next, forwardrecurrence_partial!
+import RecurrenceRelationships: forwardrecurrence_partial!
 import RecurrenceRelationshipArrays: initiateforwardrecurrence
 import Base: size, show, string, tail, getindex
 export FixedRecurrenceArray

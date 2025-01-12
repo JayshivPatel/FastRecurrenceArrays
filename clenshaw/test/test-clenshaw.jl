@@ -13,3 +13,5 @@ y = FixedClenshaw([1, 0.5], rec_U..., X)
 vec = [0.1, 0.2]
 
 a = FixedClenshaw([1, 1/2, 1/3, 1/4], rec_U..., vec)
+
+b = GPUFixedClenshaw([1, 1/2, 1/3, 1/4], rec_U..., vec)
