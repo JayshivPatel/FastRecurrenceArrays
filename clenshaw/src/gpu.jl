@@ -1,4 +1,4 @@
-import RecurrenceRelationships: clenshaw_next, _clenshaw_first, check_clenshaw_recurrences
+import RecurrenceRelationships: check_clenshaw_recurrences
 
 using CUDA
 
@@ -29,9 +29,9 @@ function GPUFixedClenshaw(c::AbstractVector, A::AbstractVector, B::AbstractVecto
 end
 
 GPUFixedClenshaw(c::Number, A, B, C, X, p) = GPUFixedClenshaw([c], A, B, C, X, p)
-GPUFixedClenshaw(c, A, B, C, x::Number, p) = GPUFixedClenshaw(c, A, B, C, [x], p)
 
 function gpuclenshaw!(M::FixedClenshaw)
+    
     num_points = length(M)
     num_coeffs = length(M.c)
 
@@ -64,6 +64,7 @@ end
 
 function clenshaw_next(n::Integer, A, B, C, X::CuArray{Float32}, c, 
     bn1::CuArray{Float32}, bn2::CuArray{Float32}, num_points::Integer)
+
     # construct vectors
     Aₙ = CUDA.fill(A[n], num_points)
     Bₙ = CUDA.fill(B[n], num_points)
