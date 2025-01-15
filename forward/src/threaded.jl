@@ -4,9 +4,10 @@ export ThreadedFixedRecurrenceArray;
 
 # constructor
 
-function ThreadedFixedRecurrenceArray(z::AbstractVector, (A, B, C), input_data::AbstractMatrix{T}, n::Integer) where {T}
-    return FixedRecurrenceArray(z, (A, B, C), input_data, n, multithreadedforwardrecurrence!)
-end
+ThreadedFixedRecurrenceArray(z::AbstractVector, (A, B, C), 
+    input_data::AbstractMatrix{T}, n::Integer) where {T} = 
+    FixedRecurrenceArray(z, (A, B, C), input_data, n, multithreadedforwardrecurrence!)
+
 
 # threaded population for evaluation of multiple points
 

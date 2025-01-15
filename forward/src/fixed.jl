@@ -1,6 +1,7 @@
 import RecurrenceRelationships: forwardrecurrence_partial!
 import RecurrenceRelationshipArrays: initiateforwardrecurrence
 import Base: size, show, string, tail, getindex
+
 export FixedRecurrenceArray
 
 # struct

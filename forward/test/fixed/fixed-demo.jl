@@ -1,7 +1,7 @@
 using FixedRecurrenceArrays
 
 # choose points inside the domain: (make complex)
-z_in = (-5.0005:0.001:5.0005) .+ 0 * im
+z_in = (-1.0:0.001:1.0) .+ 0 * im
 
 # choose points outside the domain:
 z_out = (1.0:0.001:100.0)
