@@ -1,0 +1,25 @@
+name = "FastRecurrenceArrays"
+uuid = "23435040-46b2-4fbc-bf15-331a77aba0a1"
+authors = ["Jayshiv Patel"]
+version = "1.0.0-DEV"
+
+[deps]
+BandedMatrices = "aae01518-5342-5314-be14-df237901396f"
+CUDA = "052768ef-5323-5732-b1bb-66c8b64840ba"
+Distributed = "8ba89e20-285c-5b6f-9357-94700520ee1b"
+DistributedData = "f6a0035f-c5ac-4ad0-b410-ad102ced35df"
+RecurrenceRelationships = "807425ed-42ea-44d6-a357-6771516d7b2c"
+
+[compat]
+BandedMatrices = "1.9.2"
+CUDA = "5.6.1"
+Distributed = "1.11.0"
+DistributedData = "0.2.0"
+RecurrenceRelationships = "0.2.0"
+julia = "1.6.7"
+
+[extras]
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[targets]
+test = ["Test"]
