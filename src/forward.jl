@@ -41,6 +41,8 @@ FixedRecurrenceArray(z, A, B, C, data::Array{T,N}, n) where {T,N} =
 
 # constructors
 
+#TODO: Fix this in line with the actual code, so that comparisons are possible.
+
 function FixedRecurrenceArray(z::Number, (A, B, C), input_data::AbstractVector{T},
     n::Integer, populate::Function=defaultforwardrecurrence!) where {T}
     
