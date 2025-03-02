@@ -1,4 +1,6 @@
-import RecurrenceRelationships: forwardrecurrence_partial!, forwardrecurrence_next
+import RecurrenceRelationships: 
+    forwardrecurrence_partial!, 
+    forwardrecurrence_next
 import Base: size, show, string, tail, getindex
 
 using CUDA, Distributed, DistributedData
@@ -41,38 +43,60 @@ FixedRecurrenceArray(z, A, B, C, data::Array{T,N}, n) where {T,N} =
 
 # constructors
 
-#TODO: Fix this in line with the actual code, so that comparisons are possible.
+function FixedRecurrenceArray(z::Number, (A, B, C), n::Integer, 
+    input_data::AbstractVector{T}=zeros(1), populate::Function=defaultforwardrecurrence!) where {T}
 
-function FixedRecurrenceArray(z::Number, (A, B, C), input_data::AbstractVector{T},
-    n::Integer, populate::Function=defaultforwardrecurrence!) where {T}
+    @assert n >= 2
     
     N = length(input_data)
 
     # allocate a fixed size output array
     output_data = similar(input_data, n)
 
-    # copy the initial data to the output
-    output_data[axes(input_data)...] = input_data
+    if N < 2
+        p0 = convert(T, one(z))
+        p1 = convert(T, muladd(A[1], z, B[1])*p0)
+        output_data[1] = p0
+        output_data[2] = p1
+    else
+        # copy the initial data to the output
+        output_data[axes(input_data)...] = input_data
+    end
 
     # calculate and populate recurrence
-    populate(N, output_data, z, (A, B, C), n)
+    populate(2, output_data, z, (A, B, C), n)
 
     return FixedRecurrenceVector{T,typeof(A),typeof(B),typeof(C)}(z, A, B, C, output_data, n)
 end
 
-function FixedRecurrenceArray(z::AbstractVector, (A, B, C), input_data::AbstractMatrix{T},
-    n::Integer, populate::Function=defaultforwardrecurrence!) where {T}
+function FixedRecurrenceArray(z::AbstractVector, (A, B, C), n::Integer,
+    input_data::AbstractMatrix{T}=zeros(1, length(z)), populate::Function=defaultforwardrecurrence!) where {T}
+
+    @assert n >= 2
 
     M, N = size(input_data)
 
     # allocate a fixed size output matrix
     output_data = similar(input_data, n, N)
 
-    # copy the initial data to the output
-    output_data[axes(input_data)...] = input_data
+    if M < 2
+        p0 = Vector{T}(undef, N)
+        p1 = Vector{T}(undef, N)
+
+        for j = axes(z, 1)
+            p0[j] = convert(T, one(z[j]))
+            p1[j] = convert(T, muladd(A[1], z[j], B[1])*p0[j])
+        end
+
+        output_data[1, :] .= p0
+        output_data[2, :] .= p1
+    else
+        # copy the initial data to the output
+        output_data[axes(input_data)...] = input_data
+    end
 
     # calculate and populate recurrence
-    populate(M, output_data, z, (A, B, C), n)
+    populate(2, output_data, z, (A, B, C), n)
 
     return FixedRecurrenceMatrix{T,typeof(z),typeof(A),typeof(B),typeof(C)}(z, A, B, C, output_data, n)
 end
@@ -80,20 +104,22 @@ end
 # dim 1: rows, dim 2: columns
 
 function ThreadedRecurrenceArray(z::AbstractVector, (A, B, C), 
-    input_data::AbstractMatrix{T}, n::Integer, dims::Integer=1) where {T}
+    n::Integer, input_data::AbstractMatrix{T}=zeros(1, length(z)), dims::Integer=1) where {T}
 
+    @assert n >= 2
     @assert dims == 1 || dims == 2 "dimension must be either 1 or 2."
 
     if dims == 1
-        return FixedRecurrenceArray(z, (A, B, C), input_data, n, rowthreadedrecurrence!)
+        return FixedRecurrenceArray(z, (A, B, C), n, input_data, rowthreadedrecurrence!)
     elseif dims == 2
-        return FixedRecurrenceArray(z, (A, B, C), input_data, n, columnthreadedrecurrence!)
+        return FixedRecurrenceArray(z, (A, B, C), n, input_data, columnthreadedrecurrence!)
     end
 end
 
-function PartitionedRecurrenceArray(z::AbstractVector, (A, B, C),
-    input_data::AbstractMatrix{T}, n::Integer,
-    workers::Vector=workers()) where {T}
+function PartitionedRecurrenceArray(z::AbstractVector, (A, B, C), n::Integer,
+    input_data::AbstractMatrix{T}=zeros(1, length(z)), workers::Vector=workers()) where {T}
+
+    @assert n >= 2
 
     # get the number of vectors
     _, M = size(input_data)
@@ -120,8 +146,8 @@ function PartitionedRecurrenceArray(z::AbstractVector, (A, B, C),
                 Dict(
                     "z" => z[partitions[worker_index]],
                     "A_B_C" => (A, B, C),
-                    "input_data" => input_data[:, partitions[worker_index]],
-                    "N" => n
+                    "N" => n,
+                    "input_data" => input_data[:, partitions[worker_index]]
                 )
         ) for (worker_index, worker) in enumerate(workers)]
     )
@@ -137,8 +163,8 @@ function PartitionedRecurrenceArray(z::AbstractVector, (A, B, C),
             :(FixedRecurrenceArray(
                 _LOCAL_DATA["z"],
                 _LOCAL_DATA["A_B_C"],
+                _LOCAL_DATA["N"],
                 _LOCAL_DATA["input_data"],
-                _LOCAL_DATA["N"]
             ))
         ) for worker in workers]
     )
@@ -146,8 +172,8 @@ function PartitionedRecurrenceArray(z::AbstractVector, (A, B, C),
     return PartitionedRecurrenceArray{T,typeof(A),typeof(B),typeof(C)}(A, B, C, workers, partitions, n, M)
 end
 
-function GPURecurrenceArray(z::AbstractVector, (A, B, C),
-    input_data::AbstractMatrix{T}, n::Integer) where {T}
+function GPURecurrenceArray(z::AbstractVector, (A, B, C), n::Integer,
+    input_data::AbstractMatrix{T}=zeros(1, length(z))) where {T}
 
     if (eltype(z) == Float64 || eltype(z) == ComplexF64 || eltype(A) == Float64 ||
         eltype(B) == Float64 || eltype(C) == Float64 || T == Float64 || T == ComplexF64)
@@ -161,7 +187,7 @@ function GPURecurrenceArray(z::AbstractVector, (A, B, C),
     C = checkandconvert(C)
     input_data = checkandconvert(input_data)
 
-    return FixedRecurrenceArray(z, (A, B, C), input_data, n, gpuforwardrecurrence!)
+    return FixedRecurrenceArray(z, (A, B, C), n, input_data, gpuforwardrecurrence!)
 end
 
 # Float32/ComplexF32 helper function
