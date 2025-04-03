@@ -173,7 +173,7 @@ function PartitionedRecurrenceArray(z::AbstractVector, (A, B, C), n::Integer,
 end
 
 function GPURecurrenceArray(z::AbstractVector, (A, B, C), n::Integer,
-    input_data::AbstractMatrix{T}=zeros(1, length(z))) where {T}
+    input_data::AbstractMatrix{T}=zeros(Float32, (1, length(z)))) where {T}
 
     if (eltype(z) == Float64 || eltype(z) == ComplexF64 || eltype(A) == Float64 ||
         eltype(B) == Float64 || eltype(C) == Float64 || T == Float64 || T == ComplexF64)

@@ -5,8 +5,8 @@ services:
     deploy:
       resources:
         limits:
-          memory: 2g
-          cpus: 2.0
+          memory: 6g
+          cpus: 3.0
     ports:
       - "2222:22"
     networks:
@@ -18,8 +18,8 @@ services:
     deploy:
       resources:
         limits:
-          memory: 2g
-          cpus: 2.0
+          memory: 6g
+          cpus: 3.0
     ports:
       - "2223:22"
     networks:
@@ -31,8 +31,8 @@ services:
     deploy:
       resources:
         limits:
-          memory: 2g
-          cpus: 2.0
+          memory: 6g
+          cpus: 3.0
     ports:
       - "2224:22"
     networks:
@@ -44,36 +44,10 @@ services:
     deploy:
       resources:
         limits:
-          memory: 2g
-          cpus: 2.0
+          memory: 6g
+          cpus: 3.0
     ports:
       - "2225:22"
-    networks:
-      - app-network
-
-  worker_5:
-    image: julia
-    build: .
-    deploy:
-      resources:
-        limits:
-          memory: 2g
-          cpus: 2.0
-    ports:
-      - "2226:22"
-    networks:
-      - app-network
-
-  worker_6:
-    image: julia
-    build: .
-    deploy:
-      resources:
-        limits:
-          memory: 2g
-          cpus: 2.0
-    ports:
-      - "2227:22"
     networks:
       - app-network
 
