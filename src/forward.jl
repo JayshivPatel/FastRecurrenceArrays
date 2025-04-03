@@ -104,7 +104,7 @@ end
 # dim 1: rows, dim 2: columns
 
 function ThreadedRecurrenceArray(z::AbstractVector, (A, B, C), 
-    n::Integer, input_data::AbstractMatrix{T}=zeros(1, length(z)), dims::Integer=1) where {T}
+    n::Integer, dims::Integer=1, input_data::AbstractMatrix{T}=zeros(1, length(z))) where {T}
 
     @assert n >= 2
     @assert dims == 1 || dims == 2 "dimension must be either 1 or 2."

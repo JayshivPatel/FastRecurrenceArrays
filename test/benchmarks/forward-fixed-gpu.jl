@@ -1,7 +1,7 @@
 using FastRecurrenceArrays, BenchmarkTools
 
 # choose points
-x = Float32.(-10.0:0.005:10.0);
+x = Float32.(-10.0:0.02:(10.0-0.02));
 
 # num vectors
 M = length(x);
