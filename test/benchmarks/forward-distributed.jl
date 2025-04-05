@@ -6,7 +6,7 @@ addprocs(["root@localhost"]; tunnel=true, sshflags=["-p", "2222", "-o", "StrictH
 # activate the FastRecurrenceArrays environment 
 @everywhere (import Pkg; Pkg.activate("."); Pkg.instantiate());
 
-# load modules
+# load module
 @everywhere using FastRecurrenceArrays;
 
 # choose points
