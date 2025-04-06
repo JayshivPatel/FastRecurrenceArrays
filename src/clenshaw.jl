@@ -78,6 +78,8 @@ function GPUClenshaw(c::AbstractVector, (A, B, C), X::AbstractVector)
 
     # calculate and populate the data using Clenshaw's on a GPU
     gpuclenshaw!(M)
+
+    return M
 end
 
 GPUClenshaw(c::Number, (A, B, C), X, p) = GPUClenshaw([c], (A, B, C), X, p)
@@ -171,7 +173,7 @@ function gpuclenshaw!(M::FixedClenshaw)
         gpu_bn1 = gpuclenshaw_next(1, M.A, M.B, M.C, gpu_data, M.c, gpu_bn1, gpu_bn2, num_points)
     end
 
-    return gpu_bn1
+    copyto!(M.data, gpu_bn1)
 end
 
 function gpuclenshaw_next(n::Integer, A, B, C, X::CuArray{Float32}, c,

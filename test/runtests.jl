@@ -5,7 +5,7 @@ using ClassicalOrthogonalPolynomials, FastRecurrenceArrays, RecurrenceRelationsh
 x = [0.1+0im, 1.0001, 10.0];
 M = length(x);
 N = 15;
-rec_U = (2 * ones(Float32, N), zeros(Float32, N), ones(Float32, N+1));
+rec_U = (2 * ones(N), zeros(N), ones(N+1));
 
 @testset "Forward" begin
     # forward recurrence - no data
@@ -19,8 +19,8 @@ end
 
 @testset "Clenshaw" begin
     # clenshaw
-    @test FixedClenshaw(Float32.(inv.(1:N)), rec_U, x).data ≈ clenshaw(Float32.(inv.(1:N)), rec_U..., x);
+    @test FixedClenshaw(inv.(1:N), rec_U, x).data ≈ clenshaw(inv.(1:N), rec_U..., x);
 
     # forward-inplace correctness
-    @test FixedClenshaw(Float32.(inv.(1:N)), rec_U, x).data ≈ ForwardInplace(Float32.(inv.(1:N)), rec_U, x).f_z;
+    @test FixedClenshaw(inv.(1:N), rec_U, x).data ≈ ForwardInplace(inv.(1:N), rec_U, x).f_z;
 end
