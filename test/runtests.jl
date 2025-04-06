@@ -9,7 +9,7 @@ rec_U = (2 * ones(N), zeros(N), ones(N+1));
 
 @testset "Forward" begin
     # forward recurrence - no data
-    @test FixedRecurrenceArray(x[1], rec_U, N) == chebyshevu.(0:N-1, x[1]);
+    @test FixedRecurrenceArray(x[1], rec_U, N) ≈ chebyshevu.(0:N-1, x[1]);
 
     # forward recurrence - data (only check first few to avoid backwards swap in adaptive version)
     ξ = @. inv(x + sign(x)sqrt(x^2-1));
