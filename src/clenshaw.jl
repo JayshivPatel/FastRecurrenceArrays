@@ -1,68 +1,60 @@
-import RecurrenceRelationships: check_clenshaw_recurrences, clenshaw, clenshaw!, clenshaw_next, _clenshaw_first
+import RecurrenceRelationships: check_clenshaw_recurrences, clenshaw_next, _clenshaw_first
 import BandedMatrices: AbstractBandedMatrix, bandwidth
 import Base: axes, getindex, size, show
 
 using CUDA
 
-export FixedClenshaw, ThreadedClenshaw, GPUClenshaw
+export Clenshaw, FixedClenshaw, ThreadedClenshaw, GPUClenshaw
 
 # struct
 
-struct FixedClenshaw{T,Coefs<:AbstractVector,AA<:AbstractVector,BB<:AbstractVector,CC<:AbstractVector,XX<:AbstractVector}
+struct Clenshaw{Coefs<:AbstractVector,AA<:AbstractVector,BB<:AbstractVector,CC<:AbstractVector,XX<:AbstractVector}
     c::Coefs
     A::AA
     B::BB
     C::CC
     x::XX
-    data::Array{T}
-    p0::T
+    f::XX
+    p₀::XX
 end
-
 
 # constructors
 
-function FixedClenshaw(c::AbstractVector, (A, B, C), x::AbstractVector,
-    populate::Function=clenshaw!)
+function FixedClenshaw(c::AbstractVector, A, B, C, x::AbstractVector,
+    p₀::AbstractVector=ones(eltype(x), length(x)), p₁::AbstractVector=(A[1] .* x .+ B[1]) .* p₀, computeClenshaw::Function=serialclenshaw)
 
     num_coeffs = length(c)
 
-    T = promote_type(eltype(c), eltype(x))
-
     @boundscheck check_clenshaw_recurrences(num_coeffs, A, B, C)
 
-    num_coeffs == 0 && return zero(T)
+    num_coeffs == 0 && return zero(eltype(x))
 
-    # copy the initialisation to a struct
-    M = FixedClenshaw(convert(AbstractVector{T}, c), A, B, C, convert(AbstractVector{T}, x), Base.copy(x), one(T))
+    # calculate fₓ using Clenshaw's
+    fₓ = computeClenshaw(x, c, A, B, C, p₀, p₁)
 
-    # calculate and populate the data using Clenshaw's
-    populate(M.data, M.c, M.A, M.B, M.C)
-
-    return M
+    return Clenshaw(c, A, B, C, x, fₓ, p₀)
 end
-
-FixedClenshaw(c::Number, (A, B, C), X, p) = FixedClenshaw([c], (A, B, C), X, p)
-FixedClenshaw(c, (A, B, C), x::Number, p) = FixedClenshaw(c, (A, B, C), [x], p)
-
 
 # dim 1: rows, dim 2: columns
 
-function ThreadedClenshaw(c::AbstractVector, (A, B, C), x::AbstractVector,
-    dims::Integer=1)
+function ThreadedClenshaw(c::AbstractVector, A, B, C, x::AbstractVector,  dims::Integer=2,
+    p₀::AbstractVector=ones(eltype(x), length(x)), p₁::AbstractVector=(A[1] .* x .+ B[1]) .* p₀)
 
     @assert dims == 1 || dims == 2 "dimension must be either 1 or 2."
 
     if dims == 1
-        return FixedClenshaw(c, (A, B, C), x, rowthreadedclenshaw!)
+        return FixedClenshaw(c, A, B, C, x, p₀, p₁, rowthreadedclenshaw)
     elseif dims == 2
-        return FixedClenshaw(c, (A, B, C), x, columnthreadedclenshaw!)
+        return FixedClenshaw(c, A, B, C, x, p₀, p₁, columnthreadedclenshaw)
     end
 end
 
-function GPUClenshaw(c::AbstractVector, (A, B, C), X::AbstractVector)
+function GPUClenshaw(c::AbstractVector, A, B, C, x::AbstractVector,
+    p₀::AbstractVector=ones(eltype(x), length(x)), p₁::AbstractVector=(A[1] .* x .+ B[1]) .* p₀)
 
     if (eltype(c) == Float64 || eltype(A) == Float64 || eltype(B) == Float64 ||
-        eltype(C) == Float64 || eltype(X) == Float64)
+        eltype(C) == Float64 || eltype(x) == Float64 || eltype(p₀) == Float64 ||
+        eltype(p₁) == Float64)
         @warn "Converting input vector(s) to Float32 for improved performance..."
     end
 
@@ -71,63 +63,90 @@ function GPUClenshaw(c::AbstractVector, (A, B, C), X::AbstractVector)
     A = checkandconvert(A)
     B = checkandconvert(B)
     C = checkandconvert(C)
-    X = checkandconvert(X)
+    x = checkandconvert(x)
+    p₀ = checkandconvert(p₀)
+    p₁ = checkandconvert(p₁)
 
-    # copy the initialisation to a struct
-    M = FixedClenshaw(c, A, B, C, X, Base.copy(X), one(Float32))
+    fₓ = gpuclenshaw(x, c, A, B, C, p₀, p₁)
 
-    # calculate and populate the data using Clenshaw's on a GPU
-    gpuclenshaw!(M)
-
-    return M
+    return Clenshaw(c, A, B, C, x, fₓ, p₀)
 end
-
-GPUClenshaw(c::Number, (A, B, C), X, p) = GPUClenshaw([c], (A, B, C), X, p)
 
 # properties and access
 
-copy(M::FixedClenshaw) = M # immutable entries
-size(M::FixedClenshaw) = size(M.data)
-axes(M::FixedClenshaw) = axes(M.data)
-bandwidths(M::FixedClenshaw) = (length(M.c) - 1, length(M.c) - 1)
-getindex(M::FixedClenshaw, index...) = M.data[index...]
+copy(M::Clenshaw) = M # immutable entries
+size(M::Clenshaw) = size(M.f)
+axes(M::Clenshaw) = axes(M.f)
+getindex(M::Clenshaw, index...) = M.f[index...]
 
 # display
 
-function show(io::IO, ::MIME"text/plain", M::FixedClenshaw)
+function show(io::IO, ::MIME"text/plain", M::Clenshaw)
     s = size(M)
     println(
         io,
         string(s[1]) * "×" * (length(s) > 1 ? string(s[2]) : string(1)) * " " *
         string(typeof(M)) * ":"
     )
-    show(io, MIME"text/plain"(), M.data)
+    show(io, MIME"text/plain"(), M.f)
+end
+
+# serial clenshaw
+
+function serialclenshaw(x::AbstractVector, c::AbstractVector, A, B, C, p₀::AbstractVector, p₁::AbstractVector)
+    num_points = length(x)
+    num_coeffs = length(c)
+
+    @boundscheck check_clenshaw_recurrences(num_coeffs, A, B, C)
+
+    num_coeffs == 0 && return zero(eltype(x))
+
+    b₀ = zeros(eltype(x), length(x))
+    b₁ = zeros(eltype(x), length(x))
+
+    num_coeffs == 1 && return bn1
+
+    @inbounds for j in axes(x, 1)
+        bn2 = zero(eltype(x))
+        bn1 = convert(eltype(x),c[num_coeffs])
+        for n = num_coeffs-1:-1:2
+            bn1, bn2 = clenshaw_next(n, A, B, C, x[j], c, bn1, bn2), bn1
+        end
+
+        b₀[j] = _clenshaw_first(A, B, C, x[j], c, bn1, bn2)
+        b₁[j] = bn1
+    end
+
+    # fₓ ≈ b₀(x)p₀(x) + b₁(x)(p₁(x) - α₀(x)p₀(x))
+    return (b₀ .* p₀) .+ b₁ .* (p₁ .- (A[1] .* x .+ B[1]) .* p₀)
 end
 
 # column-wise threaded clenshaw
 
-function columnthreadedclenshaw!(x::AbstractVector, c::AbstractVector, A, B, C)
+function columnthreadedclenshaw(x::AbstractVector, c::AbstractVector, A, B, C, p₀::AbstractVector, p₁::AbstractVector)
+
+    fₓ = zeros(eltype(x), length(x))
 
     @inbounds Threads.@threads for j in axes(x, 1)
-        x[j] = clenshaw(c, A, B, C, x[j])
+        fₓ[j] = serialclenshaw([x[j]], c, A, B, C, [p₀[j]], [p₁[j]])[1]
     end
+
+    return fₓ
 end
 
 # row-wise threaded clenshaw
 
-function rowthreadedclenshaw!(x::AbstractVector, c::AbstractVector, A, B, C)
-
+function rowthreadedclenshaw(x::AbstractVector, c::AbstractVector, A, B, C, p₀::AbstractVector, p₁::AbstractVector)
     num_points = length(x)
     num_coeffs = length(c)
 
-    T = eltype(x)
-
     @inbounds begin
-        bn2, bn1 = zeros(T, length(x)), fill(convert(T, c[num_coeffs]), length(x))
+        bn2 = zeros(eltype(x), length(x))
+        bn1 = fill(convert(eltype(x), c[num_coeffs]), length(x))
+        bn0 = zeros(eltype(x), length(x))
 
         if num_coeffs == 1
-            x = bn1
-            return
+            return bn1
         end
 
         for i in num_coeffs-1:-1:2
@@ -137,54 +156,62 @@ function rowthreadedclenshaw!(x::AbstractVector, c::AbstractVector, A, B, C)
         end
 
         Threads.@threads for j in axes(x, 1)
-            bn1[j] = _clenshaw_first(A, B, C, x[j], c, bn1[j], bn2[j])
+            bn0[j] = _clenshaw_first(A, B, C, x[j], c, bn1[j], bn2[j])
         end
 
-        x .= bn1
+        return (bn0 .* p₀) .+ bn1 .* (p₁ .- (A[1] .* x .+ B[1]) .* p₀)
     end
 end
 
 # row-wise GPU clenshaw
 
-function gpuclenshaw!(M::FixedClenshaw)
+function gpuclenshaw(x::AbstractVector, c::AbstractVector, A, B, C, p₀::AbstractVector, p₁::AbstractVector)
 
-    num_points = length(M.x)
-    num_coeffs = length(M.c)
+    num_points = length(x)
+    num_coeffs = length(c)
 
-    T = typeof(M.p0)
+    @boundscheck check_clenshaw_recurrences(num_coeffs, A, B, C)
 
-    @boundscheck check_clenshaw_recurrences(num_coeffs, M.A, M.B, M.C)
-
-    num_coeffs == 0 && return zero(T)
+    num_coeffs == 0 && return zero(eltype(x))
 
     @inbounds begin
         # copy the data to the GPU
-        gpu_data = CuArray(M.data)
+        gpu_x = CuArray(x)
+        gpu_p₀ = CuArray(p₀)
+        gpu_p₁ = CuArray(p₁)
 
         # initialise arrays for the clenshaw computation
-        gpu_bn2, gpu_bn1 = CUDA.zeros(T, num_points), CUDA.fill(convert(T, M.c[num_coeffs]), num_points)
+        gpu_bn2, gpu_bn1 = 
+            CUDA.zeros(eltype(x), num_points), CUDA.fill(convert(eltype(x), c[num_coeffs]), num_points)
+
         num_coeffs == 1 && return Array(gpu_bn1)
 
         for n = num_coeffs-1:-1:2
             gpu_bn1, gpu_bn2 =
-                gpuclenshaw_next(n, M.A, M.B, M.C, gpu_data, M.c, gpu_bn1, gpu_bn2, num_points), gpu_bn1
+                gpuclenshaw_next(A[n], B[n], C[n], gpu_x, c[n], gpu_bn1, gpu_bn2, num_points), gpu_bn1
         end
 
-        gpu_bn1 = gpuclenshaw_next(1, M.A, M.B, M.C, gpu_data, M.c, gpu_bn1, gpu_bn2, num_points)
-    end
+        gpu_bn0 = gpuclenshaw_next(A[1], B[1], C[1], gpu_x, c[1], gpu_bn1, gpu_bn2, num_points)
 
-    copyto!(M.data, gpu_bn1)
+        A₁ = CUDA.fill(A[1], num_points)
+        B₁ = CUDA.fill(B[1], num_points)
+
+        # fₓ ≈ b₀(x)p₀(x) + b₁(x)(p₁(x) - α₀(x)p₀(x))
+        fₓ = (gpu_bn0 .* gpu_p₀) .+ gpu_bn1 .* (gpu_p₁ .- (A₁ .* gpu_x + B₁) .* gpu_p₀)
+
+        return Array(fₓ)
+    end
 end
 
-function gpuclenshaw_next(n::Integer, A, B, C, X::CuArray{Float32}, c,
-    bn1::CuArray{Float32}, bn2::CuArray{Float32}, num_points::Integer)
+function gpuclenshaw_next(A, B, C, X::CuArray, c,
+    bn1::CuArray, bn2::CuArray, num_points::Integer)
 
     # construct vectors
-    Aₙ = CUDA.fill(A[n], num_points)
-    Bₙ = CUDA.fill(B[n], num_points)
-    Cₙ = CUDA.fill(C[n+1], num_points)
-    cₙ = CUDA.fill(c[n], num_points)
+    Aₙ = CUDA.fill(A, num_points)
+    Bₙ = CUDA.fill(B, num_points)
+    Cₙ = CUDA.fill(C, num_points)
+    cₙ = CUDA.fill(c, num_points)
 
-    # calculate and return the next recurrence
-    return ((Aₙ .* X + Bₙ) .* bn1 - Cₙ .* bn2 + cₙ)
+    # bₙ(x) = fₙ + (Aₙx + Bₙ)bₙ₊₁(x) - Cₙ₊₁bₙ₊₂(x) 
+    return (cₙ + (Aₙ .* X + Bₙ) .* bn1 - Cₙ .* bn2)
 end

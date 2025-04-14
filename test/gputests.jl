@@ -22,5 +22,5 @@ end
 
 @testset "Clenshaw" begin
     # GPU clenshaw correctness
-    @test GPUClenshaw(Float32.(inv.(1:N)), rec_U, x).data ≈ clenshaw(Float32.(inv.(1:N)), rec_U..., x)
+    @test GPUClenshaw(Float32.(inv.(1:N)), rec_U..., x).f ≈ clenshaw(Float32.(inv.(1:N)), rec_U..., x)
 end

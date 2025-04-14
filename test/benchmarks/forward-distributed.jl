@@ -34,19 +34,19 @@ function run_benchmark()
     display(matrix_display)
 end
 
-#run_benchmark()
+run_benchmark()
 
 addprocs(["root@localhost"]; tunnel=true, sshflags=["-p", "2223", "-o", "StrictHostKeyChecking=no"], exename="/usr/local/julia/bin/julia", dir="/tmp/FastRecurrenceArrays");
 @everywhere (import Pkg; Pkg.activate("."); Pkg.instantiate());
 @everywhere using FastRecurrenceArrays;
 
-#run_benchmark()
+run_benchmark()
 
 addprocs(["root@localhost"]; tunnel=true, sshflags=["-p", "2224", "-o", "StrictHostKeyChecking=no"], exename="/usr/local/julia/bin/julia", dir="/tmp/FastRecurrenceArrays");
 @everywhere (import Pkg; Pkg.activate("."); Pkg.instantiate());
 @everywhere using FastRecurrenceArrays;
 
-#run_benchmark()
+run_benchmark()
 
 addprocs(["root@localhost"]; tunnel=true, sshflags=["-p", "2225", "-o", "StrictHostKeyChecking=no"], exename="/usr/local/julia/bin/julia", dir="/tmp/FastRecurrenceArrays");
 @everywhere (import Pkg; Pkg.activate("."); Pkg.instantiate());
