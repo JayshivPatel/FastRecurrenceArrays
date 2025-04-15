@@ -51,12 +51,6 @@ end
 function GPUClenshaw(c::AbstractVector, A, B, C, x::AbstractVector,
     p0::AbstractVector=ones(eltype(x), length(x)), p1::AbstractVector=(A[1] .* x .+ B[1]) .* p0)
 
-    if (eltype(c) == Float64 || eltype(A) == Float64 || eltype(B) == Float64 ||
-        eltype(C) == Float64 || eltype(x) == Float64 || eltype(p0) == Float64 ||
-        eltype(p1) == Float64)
-        @warn "Converting input vector(s) to Float32 for improved performance..."
-    end
-
     # enforce Float32
     c = checkandconvert(c)
     A = checkandconvert(A)

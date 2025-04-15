@@ -178,12 +178,7 @@ function PartitionedRecurrenceArray(z::AbstractVector, (A, B, C), n::Integer,
 end
 
 function GPURecurrenceArray(z::AbstractVector, (A, B, C), n::Integer,
-    input_data::AbstractMatrix{T}=Base.zeros(Float32, (1, length(z)))) where {T}
-
-    if (eltype(z) == Float64 || eltype(z) == ComplexF64 || eltype(A) == Float64 ||
-        eltype(B) == Float64 || eltype(C) == Float64 || T == Float64 || T == ComplexF64)
-        @warn "Converting input vector(s) to Float32 for improved performance..."
-    end
+    input_data::AbstractMatrix=Base.zeros(Float32, (1, length(z))))
 
     # enforce Float32
     z = checkandconvert(z)
@@ -198,10 +193,12 @@ end
 # Float32/ComplexF32 helper function
 
 function checkandconvert(x)
-    if eltype(x) == Float64
-        return Float32.(x)
-    elseif eltype(x) == ComplexF64
+    if eltype(x) <: Complex && eltype(x) != ComplexF32
+        @warn "Converting input vector(s) to ComplexF32 for improved performance..." x=x maxlog=1
         return ComplexF32.(x)
+    elseif eltype(x) != Float32
+        @warn "Converting input vector(s) to Float32 for improved performance..." x=x maxlog=1
+        return Float32.(x)
     else
         return x
     end

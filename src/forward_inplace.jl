@@ -61,19 +61,15 @@ function ThreadedInplace(c::AbstractVector, (A, B, C), x::AbstractVector,
 end
 
 function GPUInplace(c::AbstractVector, (A, B, C), x::AbstractVector,
-    input_data::AbstractMatrix=Base.zeros(eltype(x), 1, length(x)))
-
-    if (eltype(c) == Float64 || eltype(A) == Float64 || eltype(B) == Float64 ||
-        eltype(C) == Float64 || eltype(x) == Float64)
-        @warn "Converting input vector(s) to Float32 for improved performance..."
-    end
-
+    input_data::AbstractMatrix=Base.zeros(Float32, 1, length(x)))
+    
     # enforce Float32
     c = checkandconvert(c)
     A = checkandconvert(A)
     B = checkandconvert(B)
     C = checkandconvert(C)
     x = checkandconvert(x)
+    input_data = checkandconvert(input_data)
 
     return ForwardInplace(c, (A, B, C), x, input_data, gpu_inplace!)
 end
