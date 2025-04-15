@@ -1,6 +1,10 @@
 # Basic unit tests
 
-using ClassicalOrthogonalPolynomials, FastRecurrenceArrays, RecurrenceRelationships, RecurrenceRelationshipArrays, Test;
+using ClassicalOrthogonalPolynomials, 
+    FastRecurrenceArrays,
+    RecurrenceRelationships,
+    RecurrenceRelationshipArrays,
+    Test;
 
 x = [0.1+0im, 1.0001, 10.0];
 M = length(x);
@@ -26,5 +30,5 @@ end
         (collect(inv.(1:N))' * RecurrenceArray(x[1], rec_U, x[2:3])[1:N]);
 
     # forward-inplace correctness
-    @test FixedClenshaw(inv.(1:N), rec_U..., x).f ≈ ForwardInplace(inv.(1:N), rec_U, x).f_z;
+    @test FixedClenshaw(inv.(1:N), rec_U..., x).f ≈ ForwardInplace(inv.(1:N), rec_U, x).f;
 end

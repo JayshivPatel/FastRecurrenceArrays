@@ -1,13 +1,14 @@
-import RecurrenceRelationships: 
-    forwardrecurrence_partial!, 
-    forwardrecurrence_next
 import Base: size, show, string, tail, getindex
+import CUDA
+import Distributed: workers, map, fetch
+import DistributedData: save_at, get_val_from
+import RecurrenceRelationships:
+    forwardrecurrence_partial!,
+    forwardrecurrence_next
 
-using CUDA, Distributed, DistributedData
-
-export FixedRecurrenceArray, 
-    ThreadedRecurrenceArray, 
-    PartitionedRecurrenceArray, 
+export FixedRecurrenceArray,
+    ThreadedRecurrenceArray,
+    PartitionedRecurrenceArray,
     GPURecurrenceArray
 
 # structs
@@ -43,11 +44,11 @@ FixedRecurrenceArray(z, A, B, C, data::Array{T,N}, n) where {T,N} =
 
 # constructors
 
-function FixedRecurrenceArray(z::Number, (A, B, C), n::Integer, 
-    input_data::AbstractVector{T}=zeros(typeof(z), 1), populate::Function=defaultforwardrecurrence!) where {T}
+function FixedRecurrenceArray(z::Number, (A, B, C), n::Integer,
+    input_data::AbstractVector{T}=Base.zeros(typeof(z), 1), populate::Function=defaultforwardrecurrence!) where {T}
 
     @assert n >= 2
-    
+
     N = length(input_data)
 
     # allocate a fixed size output array
@@ -55,7 +56,7 @@ function FixedRecurrenceArray(z::Number, (A, B, C), n::Integer,
 
     if N < 2
         p0 = convert(T, one(z))
-        p1 = convert(T, muladd(A[1], z, B[1])*p0)
+        p1 = convert(T, muladd(A[1], z, B[1]) * p0)
         output_data[1] = p0
         output_data[2] = p1
     else
@@ -70,7 +71,7 @@ function FixedRecurrenceArray(z::Number, (A, B, C), n::Integer,
 end
 
 function FixedRecurrenceArray(z::AbstractVector, (A, B, C), n::Integer,
-    input_data::AbstractMatrix{T}=zeros(eltype(z), 1, length(z)), populate::Function=defaultforwardrecurrence!) where {T}
+    input_data::AbstractMatrix{T}=Base.zeros(eltype(z), 1, length(z)), populate::Function=defaultforwardrecurrence!) where {T}
 
     @assert n >= 2
 
@@ -85,7 +86,7 @@ function FixedRecurrenceArray(z::AbstractVector, (A, B, C), n::Integer,
 
         for j = axes(z, 1)
             p0[j] = convert(T, one(z[j]))
-            p1[j] = convert(T, muladd(A[1], z[j], B[1])*p0[j])
+            p1[j] = convert(T, muladd(A[1], z[j], B[1]) * p0[j])
         end
 
         output_data[1, :] .= p0
@@ -103,8 +104,8 @@ end
 
 # dim 1: rows, dim 2: columns
 
-function ThreadedRecurrenceArray(z::AbstractVector, (A, B, C), 
-    n::Integer, dims::Integer=1, input_data::AbstractMatrix{T}=zeros(eltype(z), 1, length(z))) where {T}
+function ThreadedRecurrenceArray(z::AbstractVector, (A, B, C),
+    n::Integer, dims::Integer=1, input_data::AbstractMatrix{T}=Base.zeros(eltype(z), 1, length(z))) where {T}
 
     @assert n >= 2
     @assert dims == 1 || dims == 2 "dimension must be either 1 or 2."
@@ -117,7 +118,7 @@ function ThreadedRecurrenceArray(z::AbstractVector, (A, B, C),
 end
 
 function PartitionedRecurrenceArray(z::AbstractVector, (A, B, C), n::Integer,
-    input_data::AbstractMatrix{T}=zeros(eltype(z), 1, length(z)), workers::Vector=workers()) where {T}
+    input_data::AbstractMatrix{T}=Base.zeros(eltype(z), 1, length(z)), workers::Vector=workers()) where {T}
 
     @assert n >= 2
 
@@ -141,14 +142,14 @@ function PartitionedRecurrenceArray(z::AbstractVector, (A, B, C), n::Integer,
         fetch,
         # async
         [save_at(
-                worker,
-                :_LOCAL_DATA,
-                Dict(
-                    "z" => z[partitions[worker_index]],
-                    "A_B_C" => (A, B, C),
-                    "N" => n,
-                    "input_data" => input_data[:, partitions[worker_index]]
-                )
+            worker,
+            :_LOCAL_DATA,
+            Dict(
+                "z" => z[partitions[worker_index]],
+                "A_B_C" => (A, B, C),
+                "N" => n,
+                "input_data" => input_data[:, partitions[worker_index]]
+            )
         ) for (worker_index, worker) in enumerate(workers)]
     )
 
@@ -173,7 +174,7 @@ function PartitionedRecurrenceArray(z::AbstractVector, (A, B, C), n::Integer,
 end
 
 function GPURecurrenceArray(z::AbstractVector, (A, B, C), n::Integer,
-    input_data::AbstractMatrix{T}=zeros(Float32, (1, length(z)))) where {T}
+    input_data::AbstractMatrix{T}=Base.zeros(Float32, (1, length(z)))) where {T}
 
     if (eltype(z) == Float64 || eltype(z) == ComplexF64 || eltype(A) == Float64 ||
         eltype(B) == Float64 || eltype(C) == Float64 || T == Float64 || T == ComplexF64)
@@ -249,14 +250,14 @@ function getindex(K::PartitionedRecurrenceArray{T}, i, j) where {T}
         # copy the local ranges
         fetch(save_at(worker, :LOCAL_i, i))
         fetch(save_at(worker, :LOCAL_j, local_range))
-    
-        local_values =  get_val_from(worker, :(LOCAL_Fixed_Recurrence_Array[LOCAL_i, LOCAL_j]))
 
-        result[1:length(i), column_count : column_count + length(local_range) - 1] = local_values
+        local_values = get_val_from(worker, :(LOCAL_Fixed_Recurrence_Array[LOCAL_i, LOCAL_j]))
+
+        result[1:length(i), column_count:column_count+length(local_range)-1] = local_values
 
         column_count += length(local_range)
     end
-    
+
     return result
 end
 
@@ -308,7 +309,7 @@ end
 
 function columnthreadedrecurrence!(start_index::Integer, output_data::Array{T,N},
     z, (A, B, C), n::Integer) where {T,N}
-    
+
     @inbounds Threads.@threads for j in axes(z, 1)
         forwardrecurrence_partial!(view(output_data, :, j), A, B, C, z[j], start_index:n)
     end
@@ -318,10 +319,10 @@ end
 
 function rowthreadedrecurrence!(start_index::Integer, output_data::Array{T,N},
     z, (A, B, C), n::Integer) where {T,N}
-    
+
     @inbounds for i in start_index:n-1
         Threads.@threads for j in axes(z, 1)
-            output_data[i+1, j] = 
+            output_data[i+1, j] =
                 forwardrecurrence_next(i, A, B, C, z[j], output_data[i-1, j], output_data[i, j])
         end
     end
@@ -335,13 +336,13 @@ function gpuforwardrecurrence!(start_index::Integer, output_data::Array{T,N},
     num_points = length(z)
 
     # copy the data to the GPU
-    gpu_z = CuArray(z)
+    gpu_z = CUDA.CuArray(z)
 
     # initialise arrays for forward computation
-    gpu_p0, gpu_p1 = CuArray(output_data[start_index-1, :]), CuArray(output_data[start_index, :])
+    gpu_p0, gpu_p1 = CUDA.CuArray(output_data[start_index-1, :]), CUDA.CuArray(output_data[start_index, :])
 
     # initialise result storage
-    gpu_result = CuArray(output_data)
+    gpu_result = CUDA.CuArray(output_data)
 
     # populate result
     @inbounds for i = start_index:num_recurrences-1
@@ -353,8 +354,8 @@ function gpuforwardrecurrence!(start_index::Integer, output_data::Array{T,N},
     copyto!(output_data, gpu_result)
 end
 
-function gpuforwardrecurrence_next(n::Integer, A, B, C, z::CuArray, p0::CuArray,
-    p1::CuArray, num_points::Integer)
+function gpuforwardrecurrence_next(n::Integer, A, B, C, z::CUDA.CuArray, p0::CUDA.CuArray,
+    p1::CUDA.CuArray, num_points::Integer)
 
     # construct vectors
     Aₙ = CUDA.fill(A[n], num_points)

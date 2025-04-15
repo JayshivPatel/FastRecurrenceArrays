@@ -1,6 +1,11 @@
 # GPU unit tests
 
-using CUDA, ClassicalOrthogonalPolynomials, FastRecurrenceArrays, RecurrenceRelationships, RecurrenceRelationshipArrays, Test
+using CUDA,
+    ClassicalOrthogonalPolynomials,
+    FastRecurrenceArrays,
+    RecurrenceRelationships,
+    RecurrenceRelationshipArrays,
+    Test
 
 x = Float32.([1.0001, 10.0]);
 M = length(x);

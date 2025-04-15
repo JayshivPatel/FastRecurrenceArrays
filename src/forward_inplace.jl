@@ -1,3 +1,6 @@
+import Base: axes, getindex, size, show
+import CUDA
+
 export ForwardInplace, ThreadedInplace, GPUInplace
 
 # struct
@@ -7,60 +10,60 @@ struct ForwardInplace{T,Coefs<:AbstractVector,AA<:AbstractVector,BB<:AbstractVec
     A::AA
     B::BB
     C::CC
-    z::XX
-    f_z::Array{T}
+    x::XX
+    f::XX
     p0::T
 end
 
 # constructors
 
-function ForwardInplace(c::AbstractVector, (A, B, C), z::AbstractVector,
-    input_data::AbstractMatrix=zeros(eltype(z), 1, length(z)), populate::Function=forwardvec_inplace!)
+function ForwardInplace(c::AbstractVector, (A, B, C), x::AbstractVector,
+    input_data::AbstractMatrix=Base.zeros(eltype(x), 1, length(x)), populate::Function=forwardvec_inplace!)
 
     num_coeffs = length(c)
-    num_points = length(z)
+    num_points = length(x)
 
-    T = promote_type(eltype(c), eltype(z))
+    T = promote_type(eltype(c), eltype(x))
 
     num_coeffs == 0 && return zero(T)
-    
+
     M, N = size(input_data)
-    f_z = zeros(eltype(z), num_points)
+    fₓ = Base.zeros(eltype(x), num_points)
 
     p0 = Vector{T}(undef, N)
     p1 = Vector{T}(undef, N)
 
     if M < 2
-        for j = axes(z, 1)
-            p0[j] = convert(T, one(z[j]))
-            p1[j] = convert(T, muladd(A[1], z[j], B[1])*p0[j])
+        for j = axes(x, 1)
+            p0[j] = convert(T, one(x[j]))
+            p1[j] = convert(T, muladd(A[1], x[j], B[1]) * p0[j])
         end
-        f_z += p0 * c[1] + p1 * c[2]
+        fₓ += p0 * c[1] + p1 * c[2]
     else
         for i in 1:M
-            f_z += input_data[i, :] * c[1]
+            fₓ += input_data[i, :] * c[1]
         end
         p0 = input_data[end-1, :]
         p1 = input_data[end, :]
     end
 
-    # calculate and populate f_z using forward_inplace
-    populate(f_z, z, c[M:end], A, B, C, p0, p1)
+    # calculate and populate fₓ using forward_inplace
+    populate(fₓ, x, c[M:end], A, B, C, p0, p1)
 
-    return ForwardInplace(c, A, B, C, z, f_z, one(T))
+    return ForwardInplace(c, A, B, C, x, fₓ, one(T))
 end
 
-function ThreadedInplace(c::AbstractVector, (A, B, C), z::AbstractVector,
-    input_data::AbstractMatrix=zeros(eltype(z), 1, length(z)))
+function ThreadedInplace(c::AbstractVector, (A, B, C), x::AbstractVector,
+    input_data::AbstractMatrix=Base.zeros(eltype(x), 1, length(x)))
 
-    return ForwardInplace(c, (A, B, C), z, input_data, threaded_inplace!)
+    return ForwardInplace(c, (A, B, C), x, input_data, threaded_inplace!)
 end
 
-function GPUInplace(c::AbstractVector, (A, B, C), z::AbstractVector,
-    input_data::AbstractMatrix=zeros(eltype(z), 1, length(z)))
+function GPUInplace(c::AbstractVector, (A, B, C), x::AbstractVector,
+    input_data::AbstractMatrix=Base.zeros(eltype(x), 1, length(x)))
 
     if (eltype(c) == Float64 || eltype(A) == Float64 || eltype(B) == Float64 ||
-        eltype(C) == Float64 || eltype(z) == Float64)
+        eltype(C) == Float64 || eltype(x) == Float64)
         @warn "Converting input vector(s) to Float32 for improved performance..."
     end
 
@@ -69,9 +72,9 @@ function GPUInplace(c::AbstractVector, (A, B, C), z::AbstractVector,
     A = checkandconvert(A)
     B = checkandconvert(B)
     C = checkandconvert(C)
-    z = checkandconvert(z)
+    x = checkandconvert(x)
 
-    return ForwardInplace(c, (A, B, C), z, input_data, gpu_inplace!)
+    return ForwardInplace(c, (A, B, C), x, input_data, gpu_inplace!)
 end
 
 # display
@@ -83,66 +86,71 @@ function show(io::IO, ::MIME"text/plain", M::ForwardInplace)
         string(s[1]) * "×" * (length(s) > 1 ? string(s[2]) : string(1)) * " " *
         string(typeof(M)) * ":"
     )
-    show(io, MIME"text/plain"(), M.f_z)
+    show(io, MIME"text/plain"(), M.f)
 end
 
-size(M::ForwardInplace) = size(M.f_z)
+# properties and access
+
+copy(M::ForwardInplace) = M # immutable entries
+size(M::ForwardInplace) = size(M.f)
+axes(M::ForwardInplace) = axes(M.f)
+getindex(M::ForwardInplace, index...) = M.f[index...]
 
 # serial population
 
-function forwardvec_inplace!(f_z::AbstractVector, z::AbstractVector, c::AbstractVector, 
+function forwardvec_inplace!(f::AbstractVector, x::AbstractVector, c::AbstractVector,
     A, B, C, p0::AbstractVector, p1::AbstractVector)
 
-    @inbounds for j in axes(z, 1)
-        f_z[j] += forward_inplace(c, A, B, C, z[j], p0[j], p1[j])
+    @inbounds for j in axes(x, 1)
+        f[j] += forward_inplace(c, A, B, C, x[j], p0[j], p1[j])
     end
 end
 
 # threaded population (column)
 
-function threaded_inplace!(f_z::AbstractVector, z::AbstractVector, c::AbstractVector, 
+function threaded_inplace!(f::AbstractVector, x::AbstractVector, c::AbstractVector,
     A, B, C, p0::AbstractVector, p1::AbstractVector)
 
     @inbounds Threads.@threads for j in axes(z, 1)
-        f_z[j] += forward_inplace(c, A, B, C, z[j], p0[j], p1[j])
+        f[j] += forward_inplace(c, A, B, C, x[j], p0[j], p1[j])
     end
 end
 
 # gpu population 
-function gpu_inplace!(f_z::AbstractVector, z::AbstractVector, c::AbstractVector, 
+function gpu_inplace!(f::AbstractVector, x::AbstractVector, c::AbstractVector,
     A, B, C, p0::AbstractVector, p1::AbstractVector)
 
     num_coeffs = length(c)
-    num_points = length(z)
+    num_points = length(x)
 
     @inbounds begin
         # copy the data to the GPU
-        gpu_z = CuArray(z)
-        gpu_f_z = CuArray(f_z)
+        gpu_x = CUDA.CuArray(x)
+        gpu_fₓ = CUDA.CuArray(f)
 
         # initialise arrays for the clenshaw computation
-        gpu_p0, gpu_p1 = CuArray(p0), CuArray(p1)
+        gpu_p0, gpu_p1 = CUDA.CuArray(p0), CUDA.CuArray(p1)
 
         num_coeffs == 1 && return Array(gpu_bn1)
 
         for n = 2:num_coeffs
-            gpu_p1, gpu_p0 = gpuforwardrecurrence_next(n, A, B, C, gpu_z, gpu_p0, gpu_p1, num_points), gpu_p1
-            gpu_f_z += (gpu_p1 .* c[n + 1])
+            gpu_p1, gpu_p0 = gpuforwardrecurrence_next(n, A, B, C, gpu_x, gpu_p0, gpu_p1, num_points), gpu_p1
+            gpu_fₓ += (gpu_p1 .* c[n+1])
         end
     end
 
-    copyto!(f_z, gpu_f_z)
+    copyto!(f, gpu_fₓ)
 end
 
-function forward_inplace(c::AbstractVector, A, B, C, z::Number, p0::Number, p1::Number)
+function forward_inplace(c::AbstractVector, A, B, C, x::Number, p0::Number, p1::Number)
     num_coeffs = length(c)
-    
-    f_z = zero(eltype(z))
+
+    fₓ = zero(eltype(x))
 
     @inbounds for i in 2:num_coeffs-1
-        p1, p0 = muladd(muladd(A[i], z, B[i]), p1, -C[i]*p0), p1
-        f_z += p1*c[i+1]
+        p1, p0 = muladd(muladd(A[i], x, B[i]), p1, -C[i] * p0), p1
+        fₓ += p1 * c[i+1]
     end
 
-    return f_z
+    return fₓ
 end

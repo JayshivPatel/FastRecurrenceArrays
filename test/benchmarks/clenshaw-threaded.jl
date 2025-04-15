@@ -13,7 +13,7 @@ N = 100000;
 rec_U = (2 * ones(Float32, N), zeros(Float32, N), ones(Float32, N+1));
 
 # parameters
-params = (Float32.(inv.(1:N)), rec_U, x);
+params = (Float32.(inv.(1:N)), rec_U..., x);
 
 suite = BenchmarkGroup();
 

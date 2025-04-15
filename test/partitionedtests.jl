@@ -1,6 +1,11 @@
 # Partitioned unit tests
 
-using Distributed, ClassicalOrthogonalPolynomials, FastRecurrenceArrays, RecurrenceRelationships, RecurrenceRelationshipArrays, Test
+using Distributed,
+    ClassicalOrthogonalPolynomials,
+    FastRecurrenceArrays,
+    RecurrenceRelationships,
+    RecurrenceRelationshipArrays,
+    Test
 
 x = [0.1+0im, 1.0001, 10.0];
 M = length(x);
