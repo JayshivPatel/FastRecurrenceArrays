@@ -59,13 +59,15 @@ function FixedRecurrenceArray(z::Number, (A, B, C), n::Integer,
         p1 = convert(T, muladd(A[1], z, B[1]) * p0)
         output_data[1] = p0
         output_data[2] = p1
+
+        N = 2
     else
         # copy the initial data to the output
         output_data[axes(input_data)...] = input_data
     end
 
     # calculate and populate recurrence
-    populate(2, output_data, z, (A, B, C), n)
+    populate(N, output_data, z, (A, B, C), n)
 
     return FixedRecurrenceVector{T,typeof(A),typeof(B),typeof(C)}(z, A, B, C, output_data, n)
 end
@@ -91,13 +93,15 @@ function FixedRecurrenceArray(z::AbstractVector, (A, B, C), n::Integer,
 
         output_data[1, :] .= p0
         output_data[2, :] .= p1
+
+        M = 2
     else
         # copy the initial data to the output
         output_data[axes(input_data)...] = input_data
     end
 
     # calculate and populate recurrence
-    populate(2, output_data, z, (A, B, C), n)
+    populate(M, output_data, z, (A, B, C), n)
 
     return FixedRecurrenceMatrix{T,typeof(z),typeof(A),typeof(B),typeof(C)}(z, A, B, C, output_data, n)
 end

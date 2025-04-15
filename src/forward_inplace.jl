@@ -39,16 +39,17 @@ function ForwardInplace(c::AbstractVector, (A, B, C), x::AbstractVector,
             p1[j] = convert(T, muladd(A[1], x[j], B[1]) * p0[j])
         end
         fₓ += p0 * c[1] + p1 * c[2]
+        M = 2
     else
         for i in 1:M
-            fₓ += input_data[i, :] * c[1]
+            fₓ += input_data[i, :] * c[i]
         end
         p0 = input_data[end-1, :]
         p1 = input_data[end, :]
     end
 
     # calculate and populate fₓ using forward_inplace
-    populate(fₓ, x, c[M:end], A, B, C, p0, p1)
+    populate(M, fₓ, x, c, A, B, C, p0, p1)
 
     return ForwardInplace(c, A, B, C, x, fₓ, one(T))
 end
@@ -98,27 +99,27 @@ getindex(M::ForwardInplace, index...) = M.f[index...]
 
 # serial population
 
-function forwardvec_inplace!(f::AbstractVector, x::AbstractVector, c::AbstractVector,
-    A, B, C, p0::AbstractVector, p1::AbstractVector)
+function forwardvec_inplace!(start_index::Integer, f::AbstractVector, x::AbstractVector, 
+    c::AbstractVector, A, B, C, p0::AbstractVector, p1::AbstractVector)
 
     @inbounds for j in axes(x, 1)
-        f[j] += forward_inplace(c, A, B, C, x[j], p0[j], p1[j])
+        f[j] += forward_inplace(start_index, c, A, B, C, x[j], p0[j], p1[j])
     end
 end
 
 # threaded population (column)
 
-function threaded_inplace!(f::AbstractVector, x::AbstractVector, c::AbstractVector,
-    A, B, C, p0::AbstractVector, p1::AbstractVector)
+function threaded_inplace!(start_index::Integer, f::AbstractVector, x::AbstractVector, 
+    c::AbstractVector, A, B, C, p0::AbstractVector, p1::AbstractVector)
 
     @inbounds Threads.@threads for j in axes(z, 1)
-        f[j] += forward_inplace(c, A, B, C, x[j], p0[j], p1[j])
+        f[j] += forward_inplace(start_index, c, A, B, C, x[j], p0[j], p1[j])
     end
 end
 
 # gpu population 
-function gpu_inplace!(f::AbstractVector, x::AbstractVector, c::AbstractVector,
-    A, B, C, p0::AbstractVector, p1::AbstractVector)
+function gpu_inplace!(start_index::Integer, f::AbstractVector, x::AbstractVector, 
+    c::AbstractVector, A, B, C, p0::AbstractVector, p1::AbstractVector)
 
     num_coeffs = length(c)
     num_points = length(x)
@@ -133,7 +134,7 @@ function gpu_inplace!(f::AbstractVector, x::AbstractVector, c::AbstractVector,
 
         num_coeffs == 1 && return Array(gpu_bn1)
 
-        for n = 2:num_coeffs
+        for n = start_index:num_coeffs-1
             gpu_p1, gpu_p0 = gpuforwardrecurrence_next(n, A, B, C, gpu_x, gpu_p0, gpu_p1, num_points), gpu_p1
             gpu_fₓ += (gpu_p1 .* c[n+1])
         end
@@ -142,12 +143,13 @@ function gpu_inplace!(f::AbstractVector, x::AbstractVector, c::AbstractVector,
     copyto!(f, gpu_fₓ)
 end
 
-function forward_inplace(c::AbstractVector, A, B, C, x::Number, p0::Number, p1::Number)
+function forward_inplace(start_index::Integer, c::AbstractVector, A, B, C, 
+    x::Number, p0::Number, p1::Number)
     num_coeffs = length(c)
 
     fₓ = zero(eltype(x))
 
-    @inbounds for i in 2:num_coeffs-1
+    @inbounds for i in start_index:num_coeffs-1
         p1, p0 = muladd(muladd(A[i], x, B[i]), p1, -C[i] * p0), p1
         fₓ += p1 * c[i+1]
     end
