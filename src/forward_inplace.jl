@@ -29,21 +29,21 @@ function ForwardInplace(c::AbstractVector, (A, B, C), x::AbstractVector,
 
     num_coeffs == 0 && return zero(T)
 
-    M, N = size(input_data)
+    N, M = size(input_data)
     fₓ = Base.zeros(T, num_points)
 
-    p0 = Vector{T}(undef, N)
-    p1 = Vector{T}(undef, N)
+    p0 = Vector{T}(undef, M)
+    p1 = Vector{T}(undef, M)
 
-    if M < 2
+    if N < 2
         for j = axes(x, 1)
             p0[j] = convert(T, one(x[j]))
             p1[j] = convert(T, muladd(A[1], x[j], B[1]) * p0[j])
         end
         fₓ += p0 * c[1] + p1 * c[2]
-        M = 2
+        N = 2
     else
-        for i in 1:M
+        for i in 1:N
             fₓ += input_data[i, :] * c[i]
         end
         p0 = input_data[end-1, :]
@@ -51,7 +51,7 @@ function ForwardInplace(c::AbstractVector, (A, B, C), x::AbstractVector,
     end
 
     # calculate and populate fₓ using forward_inplace
-    populate(M, fₓ, x, c, A, B, C, p0, p1)
+    populate(N, fₓ, x, c, A, B, C, p0, p1)
 
     return ForwardInplace(c, A, B, C, x, fₓ, one(T))
 end
