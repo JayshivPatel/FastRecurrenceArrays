@@ -34,18 +34,10 @@ function FixedClenshaw(c::AbstractVector, A, B, C, x::AbstractVector,
     return FixedClenshaw(c, A, B, C, x, fₓ, p0, p1)
 end
 
-# dim 1: rows, dim 2: columns
-
-function ThreadedClenshaw(c::AbstractVector, A, B, C, x::AbstractVector, dims::Integer=2,
+function ThreadedClenshaw(c::AbstractVector, A, B, C, x::AbstractVector,
     p0::AbstractVector=ones(eltype(x), length(x)), p1::AbstractVector=(A[1] .* x .+ B[1]) .* p0)
 
-    @assert dims == 1 || dims == 2 "dimension must be either 1 or 2."
-
-    if dims == 1
-        return FixedClenshaw(c, A, B, C, x, p0, p1, rowthreadedclenshaw)
-    elseif dims == 2
-        return FixedClenshaw(c, A, B, C, x, p0, p1, columnthreadedclenshaw)
-    end
+    return FixedClenshaw(c, A, B, C, x, p0, p1, threadedclenshaw)
 end
 
 function GPUClenshaw(c::AbstractVector, A, B, C, x::AbstractVector,
@@ -114,9 +106,9 @@ function serialclenshaw(x::AbstractVector, c::AbstractVector, A, B, C, p0::Abstr
     return (b₀ .* p0) .+ b₁ .* (p1 .- (A[1] .* x .+ B[1]) .* p0)
 end
 
-# column-wise threaded clenshaw
+# threaded
 
-function columnthreadedclenshaw(x::AbstractVector, c::AbstractVector, A, B, C, p0::AbstractVector, p1::AbstractVector)
+function threadedclenshaw(x::AbstractVector, c::AbstractVector, A, B, C, p0::AbstractVector, p1::AbstractVector)
 
     fₓ = Base.zeros(eltype(x), length(x))
 
@@ -127,37 +119,8 @@ function columnthreadedclenshaw(x::AbstractVector, c::AbstractVector, A, B, C, p
     return fₓ
 end
 
-# row-wise threaded clenshaw
 
-function rowthreadedclenshaw(x::AbstractVector, c::AbstractVector, A, B, C, p0::AbstractVector, p1::AbstractVector)
-    num_points = length(x)
-    num_coeffs = length(c)
-
-    @inbounds begin
-        bn2 = Base.zeros(eltype(x), length(x))
-        bn1 = Base.fill(convert(eltype(x), c[num_coeffs]), length(x))
-        bn0 = Base.zeros(eltype(x), length(x))
-
-        if num_coeffs == 1
-            return bn1
-        end
-
-        for i in num_coeffs-1:-1:2
-            Threads.@threads for j in axes(x, 1)
-                bn1[j], bn2[j] = clenshaw_next(i, A, B, C, x[j], c, bn1[j], bn2[j]), bn1[j]
-            end
-        end
-
-        Threads.@threads for j in axes(x, 1)
-            bn0[j] = _clenshaw_first(A, B, C, x[j], c, bn1[j], bn2[j])
-        end
-
-        # fₓ ≈ b₀(x)p₀(x) + b₁(x)(p₁(x) - α₀(x)p₀(x))
-        return (bn0 .* p0) .+ bn1 .* (p1 .- (A[1] .* x .+ B[1]) .* p0)
-    end
-end
-
-# row-wise GPU clenshaw
+# GPU
 
 function gpuclenshaw(x::AbstractVector, c::AbstractVector, A, B, C, p0::AbstractVector, p1::AbstractVector)
 

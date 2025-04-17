@@ -5,13 +5,13 @@ export ForwardInplace, ThreadedInplace, GPUInplace
 
 # struct
 
-struct ForwardInplace{T,Coefs<:AbstractVector,AA<:AbstractVector,BB<:AbstractVector,CC<:AbstractVector,XX<:AbstractVector}
+struct ForwardInplace{T,Coefs<:AbstractVector,AA<:AbstractVector,BB<:AbstractVector,CC<:AbstractVector,XX<:AbstractVector, FF<:AbstractVector}
     c::Coefs
     A::AA
     B::BB
     C::CC
     x::XX
-    f::XX
+    f::FF
     p0::T
 end
 
@@ -28,7 +28,7 @@ function ForwardInplace(c::AbstractVector, (A, B, C), x::AbstractVector,
     num_coeffs == 0 && return zero(T)
 
     M, N = size(input_data)
-    fₓ = Base.zeros(eltype(x), num_points)
+    fₓ = Base.zeros(T, num_points)
 
     p0 = Vector{T}(undef, N)
     p1 = Vector{T}(undef, N)
@@ -62,7 +62,7 @@ end
 
 function GPUInplace(c::AbstractVector, (A, B, C), x::AbstractVector,
     input_data::AbstractMatrix=Base.zeros(Float32, 1, length(x)))
-    
+
     # enforce Float32
     c = checkandconvert(c)
     A = checkandconvert(A)
@@ -108,7 +108,7 @@ end
 function threaded_inplace!(start_index::Integer, f::AbstractVector, x::AbstractVector, 
     c::AbstractVector, A, B, C, p0::AbstractVector, p1::AbstractVector)
 
-    @inbounds Threads.@threads for j in axes(z, 1)
+    @inbounds Threads.@threads for j in axes(x, 1)
         f[j] += forward_inplace(start_index, c, A, B, C, x[j], p0[j], p1[j])
     end
 end
@@ -131,7 +131,7 @@ function gpu_inplace!(start_index::Integer, f::AbstractVector, x::AbstractVector
         num_coeffs == 1 && return Array(gpu_bn1)
 
         for n = start_index:num_coeffs-1
-            gpu_p1, gpu_p0 = gpuforwardrecurrence_next(n, A, B, C, gpu_x, gpu_p0, gpu_p1, num_points), gpu_p1
+            gpu_p1, gpu_p0 = gpuforwardrecurrence_next(A[n], B[n], C[n], gpu_x, gpu_p0, gpu_p1, num_points), gpu_p1
             gpu_fₓ += (gpu_p1 .* c[n+1])
         end
     end
