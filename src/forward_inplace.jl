@@ -1,7 +1,9 @@
 import Base: axes, getindex, size, show
 import CUDA
 
-export ForwardInplace, ThreadedInplace, GPUInplace
+export ForwardInplace,
+    ThreadedInplace,
+    GPUInplace
 
 # struct
 

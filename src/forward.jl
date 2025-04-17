@@ -2,13 +2,10 @@ import Base: size, show, string, tail, getindex
 import CUDA
 import Distributed: workers, map, fetch
 import DistributedData: save_at, get_val_from
-import RecurrenceRelationships:
-    forwardrecurrence_partial!,
-    forwardrecurrence_next
 
-export FixedRecurrenceArray,
-    ThreadedRecurrenceArray,
-    PartitionedRecurrenceArray,
+import RecurrenceRelationships: forwardrecurrence_partial!, forwardrecurrence_next
+
+export FixedRecurrenceArray, ThreadedRecurrenceArray, PartitionedRecurrenceArray,
     GPURecurrenceArray
 
 # structs

@@ -1,10 +1,6 @@
-import ClassicalOrthogonalPolynomials:
-    Legendre,
-    OrthogonalPolynomial,
-    Ultraspherical,
-    orthogonalityweight,
-    recurrencecoefficients,
-    _p0
+import ClassicalOrthogonalPolynomials: Legendre, OrthogonalPolynomial, Ultraspherical,
+    orthogonalityweight, recurrencecoefficients, _p0
+
 import SingularIntegrals: stieltjes
 
 export FixedStieltjes, InplaceStieltjes, ThreadedInplaceStieltjes, GPUInplaceStieltjes,
@@ -30,8 +26,11 @@ function ThreadedInplaceStieltjes(n::Integer, x::AbstractVector, f::AbstractVect
 end
 
 function GPUInplaceStieltjes(n::Integer, x::AbstractVector, f::AbstractVector, P::OrthogonalPolynomial=Legendre())
-    rec_P, input_data = stieltjes_init(n, x, P)
-    return GPUInplace(f, rec_P, real(x), input_data)
+    (A, B, C), input_data = stieltjes_init(n, x, P)
+    
+    # enforce Float32 recurrence coefficients on the GPU
+    A, B, C = Float32.(A), Float32.(B), Float32.(C)
+    return GPUInplace(f, (A, B, C), real(x), input_data)
 end
 
 # Forward 
@@ -54,8 +53,11 @@ function ThreadedInplaceLogKernel(n::Integer, x::AbstractVector, f::AbstractVect
 end
 
 function GPUInplaceLogKernel(n::Integer, x::AbstractVector, f::AbstractVector)
-    rec_P, input_data = logkernel_init(n, x)
-    return GPUInplace(f, rec_P, real(x), input_data)
+    (A, B, C), input_data = logkernel_init(n, x)
+
+    # enforce Float32 recurrence coefficients on the GPU
+    A, B, C = Float32.(A), Float32.(B), Float32.(C)
+    return GPUInplace(f, (A, B, C), real(x), input_data)
 end
 
 

@@ -1,7 +1,4 @@
-using BenchmarkTools, 
-    ClassicalOrthogonalPolynomials, 
-    FastRecurrenceArrays,
-    Test;
+using BenchmarkTools, ClassicalOrthogonalPolynomials, FastRecurrenceArrays, Test;
 
 # choose points
 x = ComplexF32.((10.0+0.00001:0.00001:12.0) .+ 0im);
