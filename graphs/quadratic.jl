@@ -33,7 +33,6 @@ sg = SliderGrid(
     (label = L"b", range = rg, format = "{:.1f}", startvalue = 0),
     (label = L"c", range = rg, format = "{:.1f}", startvalue = 1),
     (label = L"t", range = -2:0.1:2, format = "{:.1f}", startvalue = 0),
-
 );
 
 a = sg.sliders[1].value;
