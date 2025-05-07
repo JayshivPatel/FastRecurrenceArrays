@@ -62,4 +62,4 @@ scatter!(ax2, marker_x, marker_y; color=:dodgerblue, marker=:x, markersize=20);
 
 fig
 
-save("quadratic.png", fig);
+save("quadraticintegral.png", fig);
