@@ -2,7 +2,7 @@ using FastRecurrenceArrays, ClassicalOrthogonalPolynomials, GLMakie;
 
 side_length = 1000;
 
-xs = range(-pi/2, pi/2, length=side_length);
+xs = range(Float32(-pi/2), Float32(pi/2), length=side_length);
 
 N = 15;
 set_theme!(fontsize = 20)
@@ -49,8 +49,8 @@ yband = @lift $fz[idxs];
 ax1 = Axis(fig[1, 1], xlabel=L"t", ylabel=L"f(t)");
 int = band!(ax1, xband, yband, 0, color=(:chartreuse2, 0.2));
 func = lines!(ax1, xs, fz, color=(:blue, 0.6), linewidth = 2);
-vlines!(ax1, z, color=:white, visible=t_vis, linewidth=2);
-vlines!(ax1, z, color=:black, visible=t_vis, linewidth=2, linestyle=:dot);
+vlines!(ax1, z, color=:white, visible=z_vis, linewidth=2);
+vlines!(ax1, z, color=:black, visible=z_vis, linewidth=2, linestyle=:dot);
 lines!(ax1, [-1, 1], [0, 0], color=:black, linewidth=1.5);
 axislegend(ax1, [func, int], [L"f(t) = \frac{sin^2(t)cos^2(t)}{z-t}", L"\int_{-1}^1 f(t) dt"], position = :rt, orientation=:vertical);
 
