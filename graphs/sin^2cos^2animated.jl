@@ -42,44 +42,34 @@ end;
 
 fig = Figure(size = (1500, 1000));
 
-sg = SliderGrid(
-    fig[3, 1:3],
-    (
-        label=L"k",
-        range=-pi/2:0.01:pi/2,
-        format="{:.2f}",
-        startvalue=0,
-        color_active=:grey30,
-        color_active_dimmed=:grey60,
-        color_inactive=:grey80,
-    ),
-);
-
-k = sg.sliders[1].value;
+k = Observable(0.0)
 
 st = @lift stieltjestransform($k);
 lt = @lift logtransform($k);
 
-ax1 = Axis(fig[1, 2], xlabel=L"Re(z)", ylabel=L"Im(z)");
+ax1 = Axis(fig[2, 2], xlabel=L"Re(z)", ylabel=L"Im(z)");
 contour!(ax1, xs, ys, st, levels=15, colormap=:plasma);
 lines!(ax1, [-1, 1], [0, 0], color = :black, linewidth = 1.75);
 
-ax2 = Axis3(fig[1, 3], xlabel=L"Re(z)", ylabel=L"Im(z)");
+ax2 = Axis3(fig[2, 3], xlabel=L"Re(z)", ylabel=L"Im(z)");
 surface!(ax2, xs, ys, st, colormap=:plasma);
 
-ax3 = Axis(fig[2, 2], xlabel=L"Re(z)", ylabel=L"Im(z)");
+ax3 = Axis(fig[3, 2], xlabel=L"Re(z)", ylabel=L"Im(z)");
 contour!(ax3, xs, ys, lt, levels=15, colormap=:viridis);
 lines!(ax3, [-1, 1], [0, 0], color = :black, linewidth = 1.75);
 
-ax4 = Axis3(fig[2, 3], xlabel=L"Re(z)", ylabel=L"Im(z)");
+ax4 = Axis3(fig[3, 3], xlabel=L"Re(z)", ylabel=L"Im(z)");
 surface!(ax4, xs, ys, lt, colormap=:viridis);
 
-label1 = Label(fig[1, 1], L"\int_{-1}^1\frac{sin^2(t + k)cos^2(t + k)}{z - t} dt")
-label2 = Label(fig[2, 1], L"\int_{-1}^1sin^2(t + k)cos^2(t + k)\log |z - t| dt")
+label1 = Label(fig[2, 1], L"\int_{-1}^1\frac{sin^2(t + k)cos^2(t + k)}{z - t} dt")
+label2 = Label(fig[3, 1], L"\int_{-1}^1sin^2(t + k)cos^2(t + k)\log |z - t| dt")
+labelk = Label(fig[1, 1:3], text = @lift ("k = $(round($k, digits=2))"));
 
-rowsize!(fig.layout, 1, 300)
 rowsize!(fig.layout, 2, 300)
+rowsize!(fig.layout, 3, 300)
 
-fig
+frames = 200;
 
-save("sin^2cos^2.png", fig);
+GLMakie.record(fig, "sin^2cos^2animated.mp4", 1:frames; framerate=40) do i
+    k[] = range(Float32(-π/2), Float32(π/2), length=frames)[i];
+end;

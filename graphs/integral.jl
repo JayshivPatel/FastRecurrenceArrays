@@ -1,21 +1,24 @@
-using FastRecurrenceArrays, ClassicalOrthogonalPolynomials, GLMakie;
+using FastRecurrenceArrays, ClassicalOrthogonalPolynomials, GLMakie, CUDA;
 
-side_length = 1000;
+side_length = 100;
 
 xs = range(Float32(-pi/2), Float32(pi/2), length=side_length);
 
 N = 15;
-set_theme!(fontsize = 20)
+set_theme!(fontsize = 25)
+cuda = CUDA.has_cuda() && CUDA.has_cuda_gpu();
 
-a = 1; b = 1; c = 1;
 P = Legendre();
 
 function stieltjestransform()
-    # Choose f(t) = sin²(t)cos²(t)
-    f = expand(P, t -> (sin(t)^2 * cos(t)^2));
-    ff = collect(Float32.(f.args[2][1:N-2]));
+    f = expand(P, x -> (sin(x)^2 * cos(x)^2)); 
+    ff = collect(f.args[2][1:N-2]);
 
-    return GPUInplaceStieltjes(N, xs .+ 0im, ff).f;
+    if cuda
+        return GPUInplaceStieltjes(N, xs .+ 0im, ff).f;
+    else
+        return InplaceStieltjes(N, xs .+ 0im, ff).f;
+    end
 end;
 
 function f(z)
@@ -49,10 +52,10 @@ yband = @lift $fz[idxs];
 ax1 = Axis(fig[1, 1], xlabel=L"t", ylabel=L"f(t)");
 int = band!(ax1, xband, yband, 0, color=(:chartreuse2, 0.2));
 func = lines!(ax1, xs, fz, color=(:blue, 0.6), linewidth = 2);
-vlines!(ax1, z, color=:white, visible=z_vis, linewidth=2);
+vlines!(ax1, z, color=:white, visible=z_vis, linewidth=10);
 vlines!(ax1, z, color=:black, visible=z_vis, linewidth=2, linestyle=:dot);
 lines!(ax1, [-1, 1], [0, 0], color=:black, linewidth=1.5);
-axislegend(ax1, [func, int], [L"f(t) = \frac{sin^2(t)cos^2(t)}{z-t}", L"\int_{-1}^1 f(t) dt"], position = :rt, orientation=:vertical);
+axislegend(ax1, [func, int], [L"f(t) = \frac{sin^2(t)cos^2(t)}{z-t}", L"\int_{-1}^1 f(t) dt"], position = :rb, orientation=:vertical);
 
 ys = stieltjestransform();
 
@@ -60,11 +63,11 @@ z_idx = @lift argmin(abs.(xs .- $z));
 marker_x = @lift xs[$z_idx];
 marker_y = @lift ys[$z_idx];
 
-ax2 = Axis(fig[1, 2], xlabel=L"z", ylabel=L"2\pi i \mathcal{C}[f(z)]");
+ax2 = Axis(fig[1, 2], xlabel=L"z");
 stieltjes = lines!(ax2, xs, ys, color=:red, linewidth=2);
 value = hlines!(ax2, marker_y, color=:chartreuse2, linewidth=2, linestyle=:dash);
 marker = scatter!(ax2, marker_x, marker_y; color=:grey30, marker=:x, markersize=20);
-axislegend(ax2, [stieltjes, marker], [L"2 \pi i\mathcal{C}[f(z)]", L"z"], position = :rt, orientation=:vertical);
+axislegend(ax2, [stieltjes, marker], [L"\int_{-1}^1\frac{sin^2(t + k)cos^2(t + k)}{z - t} dt", L"z"], position = :rb, orientation=:vertical);
 
 fig
 
