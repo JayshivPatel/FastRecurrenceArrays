@@ -1,7 +1,10 @@
 # Basic unit tests
 
-using ClassicalOrthogonalPolynomials, FastRecurrenceArrays, RecurrenceRelationships,
-    RecurrenceRelationshipArrays, Test;
+import ClassicalOrthogonalPolynomials: chebyshevu
+import FastRecurrenceArrays: FixedRecurrenceArray, FixedClenshaw, ForwardInplace
+import RecurrenceRelationships: clenshaw
+import RecurrenceRelationshipArrays: RecurrenceArray
+import Test: @test, @testset
 
 @testset "BasicTests" begin
     x = [0.1+0im, 1.0001, 10.0];

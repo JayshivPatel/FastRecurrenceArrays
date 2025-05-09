@@ -1,7 +1,10 @@
 # Partitioned unit tests
 
-using Distributed, ClassicalOrthogonalPolynomials, FastRecurrenceArrays, RecurrenceRelationships,
-    RecurrenceRelationshipArrays, Test
+import Distributed: addprocs, @everywhere, nprocs
+import ClassicalOrthogonalPolynomials: chebyshevu
+import FastRecurrenceArrays: PartitionedRecurrenceArray
+import RecurrenceRelationshipArrays: RecurrenceArray
+import Test: @test, @testset
 
 @testset "Partitioned" begin
     x = [0.1+0im, 1.0001, 10.0];

@@ -1,6 +1,6 @@
 import Base: axes, getindex, size, show
 import RecurrenceRelationships: check_clenshaw_recurrences, clenshaw_next, _clenshaw_first
-import CUDA
+import CUDA: CuArray, fill, zeros
 
 export FixedClenshaw, ThreadedClenshaw, GPUClenshaw
 
@@ -133,13 +133,13 @@ function gpuclenshaw(x::AbstractVector, c::AbstractVector, A, B, C, p0::Abstract
 
     @inbounds begin
         # copy the data to the GPU
-        gpu_x = CUDA.CuArray(x)
-        gpu_p0 = CUDA.CuArray(p0)
-        gpu_p1 = CUDA.CuArray(p1)
+        gpu_x = CuArray(x)
+        gpu_p0 = CuArray(p0)
+        gpu_p1 = CuArray(p1)
 
         # initialise arrays for the clenshaw computation
         gpu_bn2, gpu_bn1 =
-            CUDA.zeros(eltype(x), num_points), CUDA.fill(convert(eltype(x), c[num_coeffs]), num_points)
+            zeros(eltype(x), num_points), fill(convert(eltype(x), c[num_coeffs]), num_points)
 
         num_coeffs == 1 && return Array(gpu_bn1)
 
@@ -150,8 +150,8 @@ function gpuclenshaw(x::AbstractVector, c::AbstractVector, A, B, C, p0::Abstract
 
         gpu_bn0 = gpuclenshaw_next(A[1], B[1], C[2], gpu_x, c[1], gpu_bn1, gpu_bn2, num_points)
 
-        A₁ = CUDA.fill(A[1], num_points)
-        B₁ = CUDA.fill(B[1], num_points)
+        A₁ = fill(A[1], num_points)
+        B₁ = fill(B[1], num_points)
 
         # fₓ ≈ b₀(x)p₀(x) + b₁(x)(p₁(x) - α₀(x)p₀(x))
         fₓ = (gpu_bn0 .* gpu_p0) .+ gpu_bn1 .* (gpu_p1 .- (A₁ .* gpu_x + B₁) .* gpu_p0)
@@ -160,14 +160,14 @@ function gpuclenshaw(x::AbstractVector, c::AbstractVector, A, B, C, p0::Abstract
     end
 end
 
-function gpuclenshaw_next(A, B, C, X::CUDA.CuArray, c,
-    bn1::CUDA.CuArray, bn2::CUDA.CuArray, num_points::Integer)
+function gpuclenshaw_next(A, B, C, X::CuArray, c,
+    bn1::CuArray, bn2::CuArray, num_points::Integer)
 
     # construct vectors
-    Aₙ = CUDA.fill(A, num_points)
-    Bₙ = CUDA.fill(B, num_points)
-    Cₙ = CUDA.fill(C, num_points)
-    cₙ = CUDA.fill(c, num_points)
+    Aₙ = fill(A, num_points)
+    Bₙ = fill(B, num_points)
+    Cₙ = fill(C, num_points)
+    cₙ = fill(c, num_points)
 
     # bₙ(x) = fₙ + (Aₙx + Bₙ)bₙ₊₁(x) - Cₙ₊₁bₙ₊₂(x) 
     return (cₙ + (Aₙ .* X + Bₙ) .* bn1 - Cₙ .* bn2)

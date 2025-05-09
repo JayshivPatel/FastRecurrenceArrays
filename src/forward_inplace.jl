@@ -1,5 +1,5 @@
 import Base: axes, getindex, size, show
-import CUDA
+import CUDA: CuArray
 
 export ForwardInplace,
     ThreadedInplace,
@@ -124,11 +124,11 @@ function gpu_inplace!(start_index::Integer, f::AbstractVector, x::AbstractVector
 
     @inbounds begin
         # copy the data to the GPU
-        gpu_x = CUDA.CuArray(x)
-        gpu_fₓ = CUDA.CuArray(f)
+        gpu_x = CuArray(x)
+        gpu_fₓ = CuArray(f)
 
         # initialise arrays for the clenshaw computation
-        gpu_p0, gpu_p1 = CUDA.CuArray(p0), CUDA.CuArray(p1)
+        gpu_p0, gpu_p1 = CuArray(p0), CuArray(p1)
 
         num_coeffs == 1 && return Array(gpu_bn1)
 

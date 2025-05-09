@@ -1,10 +1,14 @@
 # GPU unit tests
 
-using CUDA, ClassicalOrthogonalPolynomials, FastRecurrenceArrays, RecurrenceRelationships,
-    RecurrenceRelationshipArrays, Test
+import ClassicalOrthogonalPolynomials: chebyshevu, expand, Legendre
+import CUDA: has_cuda, has_cuda_gpu
+import FastRecurrenceArrays: GPURecurrenceArray, GPUClenshaw, GPUInplaceStieltjes, GPUInplaceLogKernel
+import RecurrenceRelationships: clenshaw
+import RecurrenceRelationshipArrays: RecurrenceArray
+import Test: @test, @testset
 
-@assert CUDA.has_cuda()
-@assert CUDA.has_cuda_gpu()
+@assert has_cuda()
+@assert has_cuda_gpu()
 
 @testset "GPU" begin
     x = Float32.([1.0001, 5.0, 10.0]);
@@ -27,7 +31,7 @@ using CUDA, ClassicalOrthogonalPolynomials, FastRecurrenceArrays, RecurrenceRela
         @test GPUClenshaw(Float32.(inv.(1:N)), rec_U..., x).f ≈ clenshaw(Float32.(inv.(1:N)), rec_U..., x)
 
         # GPU clenshaw - data
-        @test GPUClenshaw(inv.(1:N), rec_U..., [x[1]], [x[2]], [x[3]]).f[1] ≈ 
+        @test GPUClenshaw(Float32.(inv.(1:N)), rec_U..., [x[1]], [x[2]], [x[3]]).f[1] ≈ 
         (collect(inv.(1:N))' * RecurrenceArray(x[1], rec_U, x[2:3])[1:N]);
     end
 

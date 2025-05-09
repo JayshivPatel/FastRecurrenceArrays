@@ -1,5 +1,5 @@
 import Base: size, show, string, tail, getindex
-import CUDA
+import CUDA: CuArray, fill
 import Distributed: workers, map, fetch
 import DistributedData: save_at, get_val_from
 
@@ -334,13 +334,13 @@ function gpuforwardrecurrence!(start_index::Integer, output_data::Array{T,N},
     num_points = length(z)
 
     # copy the data to the GPU
-    gpu_z = CUDA.CuArray(z)
+    gpu_z = CuArray(z)
 
     # initialise arrays for forward computation
-    gpu_p0, gpu_p1 = CUDA.CuArray(output_data[start_index-1, :]), CUDA.CuArray(output_data[start_index, :])
+    gpu_p0, gpu_p1 = CuArray(output_data[start_index-1, :]), CuArray(output_data[start_index, :])
 
     # initialise result storage
-    gpu_result = CUDA.CuArray(output_data)
+    gpu_result = CuArray(output_data)
 
     # populate result
     @inbounds for i = start_index:num_recurrences-1
@@ -352,13 +352,13 @@ function gpuforwardrecurrence!(start_index::Integer, output_data::Array{T,N},
     copyto!(output_data, gpu_result)
 end
 
-function gpuforwardrecurrence_next(A, B, C, z::CUDA.CuArray, p0::CUDA.CuArray,
-    p1::CUDA.CuArray, num_points::Integer)
+function gpuforwardrecurrence_next(A, B, C, z::CuArray, p0::CuArray,
+    p1::CuArray, num_points::Integer)
 
     # construct vectors
-    Aₙ = CUDA.fill(A, num_points)
-    Bₙ = CUDA.fill(B, num_points)
-    Cₙ = CUDA.fill(C, num_points)
+    Aₙ = fill(A, num_points)
+    Bₙ = fill(B, num_points)
+    Cₙ = fill(C, num_points)
 
     # calculate and return the next recurrence
     return ((Aₙ .* z + Bₙ) .* p1 - Cₙ .* p0)
