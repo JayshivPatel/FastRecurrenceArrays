@@ -20,7 +20,7 @@ end
 # constructors
 
 function FixedClenshaw(c::AbstractVector, A, B, C, x::AbstractVector,
-    p0::AbstractVector=ones(eltype(x), length(x)), p1::AbstractVector=(A[1] .* x .+ B[1]) .* p0, computeClenshaw::Function=serialclenshaw)
+    p0::AbstractVector=ones(eltype(x), length(x)), p1::AbstractVector=(@.((A[1] * x + B[1]) * p0)), computeClenshaw::Function=serialclenshaw)
 
     num_coeffs = length(c)
 
@@ -35,13 +35,13 @@ function FixedClenshaw(c::AbstractVector, A, B, C, x::AbstractVector,
 end
 
 function ThreadedClenshaw(c::AbstractVector, A, B, C, x::AbstractVector,
-    p0::AbstractVector=ones(eltype(x), length(x)), p1::AbstractVector=(A[1] .* x .+ B[1]) .* p0)
+    p0::AbstractVector=ones(eltype(x), length(x)), p1::AbstractVector=@.((A[1] * x + B[1]) * p0))
 
     return FixedClenshaw(c, A, B, C, x, p0, p1, threadedclenshaw)
 end
 
 function GPUClenshaw(c::AbstractVector, A, B, C, x::AbstractVector,
-    p0::AbstractVector=ones(eltype(x), length(x)), p1::AbstractVector=(A[1] .* x .+ B[1]) .* p0)
+    p0::AbstractVector=ones(eltype(x), length(x)), p1::AbstractVector=@.((A[1] * x + B[1]) * p0))
 
     # enforce Float32
     c = checkandconvert(c)
@@ -103,7 +103,7 @@ function serialclenshaw(x::AbstractVector, c::AbstractVector, A, B, C, p0::Abstr
     end
 
     # fₓ ≈ b₀(x)p₀(x) + b₁(x)(p₁(x) - α₀(x)p₀(x))
-    return (b₀ .* p0) .+ b₁ .* (p1 .- (A[1] .* x .+ B[1]) .* p0)
+    return @. ((b₀ * p0) + b₁ * (p1 - (A[1] * x + B[1]) * p0))
 end
 
 # threaded
@@ -138,29 +138,36 @@ function gpuclenshaw(x::AbstractVector, c::AbstractVector, A, B, C, p0::Abstract
         gpu_p1 = CuArray(p1)
 
         # initialise arrays for the clenshaw computation
-        gpu_bn2, gpu_bn1 =
-            zeros(eltype(x), num_points), fill(convert(eltype(x), c[num_coeffs]), num_points)
+        gpu_bn2 = zeros(eltype(x), num_points)
+        gpu_bn1 = fill(convert(eltype(x), c[num_coeffs]), num_points)
+        gpu_next = CuArray{eltype(x)}(undef, num_points)
+        
+        cpu_fₓ = Array{eltype(x)}(undef, num_points)
+        gpu_fₓ = CuArray{eltype(x)}(undef, num_points)
 
         num_coeffs == 1 && return Array(gpu_bn1)
 
         for n = num_coeffs-1:-1:2
-            gpu_bn1, gpu_bn2 =
-                gpuclenshaw_next(A[n], B[n], C[n+1], gpu_x, c[n], gpu_bn1, gpu_bn2, num_points), gpu_bn1
+            gpuclenshaw_next!(gpu_next, A[n], B[n], C[n+1], gpu_x, c[n], gpu_bn1, gpu_bn2, num_points)
+
+            gpu_bn1, gpu_bn2 = gpu_next, gpu_bn1
         end
 
-        gpu_bn0 = gpuclenshaw_next(A[1], B[1], C[2], gpu_x, c[1], gpu_bn1, gpu_bn2, num_points)
+        gpuclenshaw_next!(gpu_next, A[1], B[1], C[2], gpu_x, c[1], gpu_bn1, gpu_bn2, num_points)
 
         A₁ = fill(A[1], num_points)
         B₁ = fill(B[1], num_points)
 
         # fₓ ≈ b₀(x)p₀(x) + b₁(x)(p₁(x) - α₀(x)p₀(x))
-        fₓ = (gpu_bn0 .* gpu_p0) .+ gpu_bn1 .* (gpu_p1 .- (A₁ .* gpu_x + B₁) .* gpu_p0)
+        @. (gpu_fₓ = (gpu_next * gpu_p0) + gpu_bn1 * (gpu_p1 - (A₁ * gpu_x + B₁) * gpu_p0))
 
-        return Array(fₓ)
+        copyto!(cpu_fₓ, gpu_fₓ)
+
+        return cpu_fₓ
     end
 end
 
-function gpuclenshaw_next(A, B, C, X::CuArray, c,
+function gpuclenshaw_next!(output::CuArray, A, B, C, X::CuArray, c,
     bn1::CuArray, bn2::CuArray, num_points::Integer)
 
     # construct vectors
@@ -170,5 +177,5 @@ function gpuclenshaw_next(A, B, C, X::CuArray, c,
     cₙ = fill(c, num_points)
 
     # bₙ(x) = fₙ + (Aₙx + Bₙ)bₙ₊₁(x) - Cₙ₊₁bₙ₊₂(x) 
-    return (cₙ + (Aₙ .* X + Bₙ) .* bn1 - Cₙ .* bn2)
+    @. output = (cₙ + (Aₙ * X + Bₙ) * bn1 - Cₙ * bn2)
 end

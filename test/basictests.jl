@@ -2,6 +2,7 @@
 
 import ClassicalOrthogonalPolynomials: chebyshevu
 import FastRecurrenceArrays: FixedRecurrenceArray, FixedClenshaw, ForwardInplace
+import LinearAlgebra: dot
 import RecurrenceRelationships: clenshaw
 import RecurrenceRelationshipArrays: RecurrenceArray
 import Test: @test, @testset
@@ -28,7 +29,7 @@ import Test: @test, @testset
 
         # clenshaw - data
         @test FixedClenshaw(inv.(1:N), rec_U..., [x[1]], [x[2]], [x[3]]).f[1] ≈ 
-            (collect(inv.(1:N))' * RecurrenceArray(x[1], rec_U, x[2:3])[1:N]);
+            dot(collect(inv.(1:N)), RecurrenceArray(x[1], rec_U, x[2:3])[1:N]);
 
         # forward-inplace correctness
         @test FixedClenshaw(inv.(1:N), rec_U..., x).f ≈ ForwardInplace(inv.(1:N), rec_U, x).f;

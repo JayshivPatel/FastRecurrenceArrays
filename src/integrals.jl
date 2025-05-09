@@ -1,6 +1,6 @@
 import ClassicalOrthogonalPolynomials: Legendre, OrthogonalPolynomial, Ultraspherical,
     orthogonalityweight, recurrencecoefficients, _p0
-
+import LinearAlgebra: dot
 import SingularIntegrals: stieltjes
 
 export FixedStieltjes, InplaceStieltjes, ThreadedInplaceStieltjes, GPUInplaceStieltjes,
@@ -10,7 +10,7 @@ export FixedStieltjes, InplaceStieltjes, ThreadedInplaceStieltjes, GPUInplaceSti
 
 function FixedStieltjes(n::Integer, x::AbstractVector, f::AbstractVector, P::OrthogonalPolynomial=Legendre())
     rec_P, input_data = stieltjes_init(n, x, P)
-    return FixedRecurrenceArray(real(x), rec_P, n - 2, input_data)' * f
+    return dot(FixedRecurrenceArray(real(x), rec_P, n - 2, input_data), f)
 end
 
 # Inplace
@@ -37,7 +37,7 @@ end
 
 function FixedLogKernel(n::Integer, x::AbstractVector, f::AbstractVector)
     rec_P, input_data = logkernel_init(n, x)
-    return FixedRecurrenceArray(real(x), rec_P, n - 2, input_data)' * f
+    return dot(FixedRecurrenceArray(real(x), rec_P, n - 2, input_data), f)
 end
 
 # Inplace
@@ -68,10 +68,12 @@ function stieltjes_init(n::Integer, x::AbstractVector, P::OrthogonalPolynomial)
     A, B, C = recurrencecoefficients(P)
     A, B, C = convert.(T, A[1:n]), convert.(T, B[1:n]), convert.(T, C[1:n])
 
-    p₀ = convert.(T, real(stieltjes(w, x) .* _p0(P)))
-    p₁ = convert.(T, real((A[1] .* x .+ B[1]) .* p₀ .- (A[1]sum(w) * _p0(P))))
+    data = Matrix{T}(undef, 2, length(x))
+
+    data[1, :] .= convert.(T, real(stieltjes(w, x) .* _p0(P)))
+    data[2, :] .= convert.(T, real((A[1] .* x .+ B[1]) .* data[1, :] .- (A[1]sum(w) * _p0(P))))
     
-    return (A, B, C), [p₀'; p₁']
+    return (A, B, C), data
 end
 
 function logkernel_init(n::Integer, x::AbstractVector)
@@ -81,9 +83,11 @@ function logkernel_init(n::Integer, x::AbstractVector)
     A, B, C = recurrencecoefficients(Ultraspherical(-1/2))
     A, B, C = convert.(T, A[2:n]), convert.(T, B[2:n]), convert.(T, C[2:n])
 
-    p₀ = @. convert(T, real(zlog(1 + x) - zlog(x - 1) - 2one(eltype(x))))
-    p₁ = @. convert(T, real((x + 1) * p₀/2 + 1 - zlog(x + 1)))
-    p₂ = @. convert(T, real(x * p₁ + 2one(eltype(x))/3))
+    data = Matrix{T}(undef, 3, length(x))
+
+    data[1, :] .= @. convert(T, real(zlog(1 + x) - zlog(x - 1) - 2one(eltype(x))))
+    data[2, :] .= @. convert(T, real((x + 1) * data[1, :]/2 + 1 - zlog(x + 1)))
+    data[3, :] .= @. convert(T, real(x * data[2, :] + 2one(eltype(x))/3))
     
-    return (A, B, C), [p₀'; p₁'; p₂']
+    return (A, B, C), data
 end
