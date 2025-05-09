@@ -103,6 +103,42 @@ function FixedRecurrenceArray(z::AbstractVector, (A, B, C), n::Integer,
     return FixedRecurrenceMatrix{T,typeof(z),typeof(A),typeof(B),typeof(C)}(z, A, B, C, output_data, n)
 end
 
+function TransposedFixedRecurrenceArray(z::AbstractVector, (A, B, C), n::Integer,
+    input_data::AbstractMatrix{T}=Base.zeros(eltype(z), 1, length(z)), populate::Function=defaultforwardrecurrence!) where {T}
+
+    @assert n >= 2
+
+    N, M = size(input_data)
+
+    # allocate a fixed size output matrix (transposed)
+    output_data = similar(input_data, M, n)
+
+    input_data_transposed = permutedims(input_data)
+
+    if N < 2
+        p0 = Vector{T}(undef, M)
+        p1 = Vector{T}(undef, M)
+
+        for j = axes(z, 1)
+            p0[j] = convert(T, one(z[j]))
+            p1[j] = convert(T, muladd(A[1], z[j], B[1]) * p0[j])
+        end
+
+        output_data[:, 1] .= p0
+        output_data[:, 2] .= p1
+
+        N = 2
+    else
+        # copy the initial data to the output
+        output_data[axes(input_data_transposed)...] = input_data_transposed
+    end
+
+    # calculate and populate recurrence
+    populate(N, output_data, z, (A, B, C), n)
+
+    return FixedRecurrenceMatrix{T,typeof(z),typeof(A),typeof(B),typeof(C)}(z, A, B, C, output_data, n)
+end
+
 # dim 1: rows, dim 2: columns
 
 function ThreadedRecurrenceArray(z::AbstractVector, (A, B, C),
@@ -112,7 +148,7 @@ function ThreadedRecurrenceArray(z::AbstractVector, (A, B, C),
     @assert dims == 1 || dims == 2 "dimension must be either 1 or 2."
 
     if dims == 1
-        return FixedRecurrenceArray(z, (A, B, C), n, input_data, rowthreadedrecurrence!)
+        return TransposedFixedRecurrenceArray(z, (A, B, C), n, input_data, rowthreadedrecurrence!)
     elseif dims == 2
         return FixedRecurrenceArray(z, (A, B, C), n, input_data, columnthreadedrecurrence!)
     end
@@ -184,7 +220,7 @@ function GPURecurrenceArray(z::AbstractVector, (A, B, C), n::Integer,
     C = checkandconvert(C)
     input_data = checkandconvert(input_data)
 
-    return FixedRecurrenceArray(z, (A, B, C), n, input_data, gpuforwardrecurrence!)
+    return TransposedFixedRecurrenceArray(z, (A, B, C), n, input_data, gpuforwardrecurrence!)
 end
 
 # Float32/ComplexF32 helper function
@@ -204,7 +240,7 @@ end
 # properties and access
 
 size(K::FixedRecurrenceVector) = (K.n,)
-size(K::FixedRecurrenceMatrix) = (K.n, size(K.data)[2])
+size(K::FixedRecurrenceMatrix) = size(K.data)
 copy(K::FixedRecurrenceArray) = K # immutable entries
 getindex(K::FixedRecurrenceArray, index...) = K.data[index...]
 
@@ -320,8 +356,8 @@ function rowthreadedrecurrence!(start_index::Integer, output_data::Array{T,N},
 
     @inbounds for i in start_index:n-1
         Threads.@threads for j in axes(z, 1)
-            output_data[i+1, j] =
-                forwardrecurrence_next(i, A, B, C, z[j], output_data[i-1, j], output_data[i, j])
+            output_data[j, i+1] =
+                forwardrecurrence_next(i, A, B, C, z[j], output_data[j, i-1], output_data[j, i])
         end
     end
 end
@@ -337,7 +373,7 @@ function gpuforwardrecurrence!(start_index::Integer, output_data::Array{T,N},
     gpu_z = CuArray(z)
 
     # initialise arrays for forward computation
-    gpu_p0, gpu_p1 = CuArray(output_data[start_index-1, :]), CuArray(output_data[start_index, :])
+    gpu_p0, gpu_p1 = CuArray(output_data[:, start_index-1]), CuArray(output_data[:, start_index])
 
     # initialise result storage
     gpu_result = CuArray(output_data)
@@ -345,7 +381,7 @@ function gpuforwardrecurrence!(start_index::Integer, output_data::Array{T,N},
     # populate result
     @inbounds for i = start_index:num_recurrences-1
         gpu_p1, gpu_p0 = gpuforwardrecurrence_next(A[i], B[i], C[i], gpu_z, gpu_p0, gpu_p1, num_points), gpu_p1
-        view(gpu_result, i + 1, :) .= gpu_p1
+        view(gpu_result, :, i + 1) .= gpu_p1
     end
 
     # copy result to memory
