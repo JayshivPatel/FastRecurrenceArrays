@@ -382,7 +382,7 @@ function gpuforwardrecurrence!(start_index::Integer, output_data::Array{T,N},
     # populate result
     @inbounds for i = start_index:num_recurrences-1
         gpu_next = view(gpu_result, :, i+1)
-        gpuforwardrecurrence_next!(gpu_next, A[i], B[i], C[i], gpu_z, gpu_p0, gpu_p1, num_points)
+        gpuforwardrecurrence_next!(gpu_next, A[i], B[i], C[i], gpu_z, gpu_p0, gpu_p1)
 
         gpu_p0, gpu_p1 = gpu_p1, gpu_next
     end
@@ -391,14 +391,7 @@ function gpuforwardrecurrence!(start_index::Integer, output_data::Array{T,N},
     copyto!(output_data, gpu_result)
 end
 
-function gpuforwardrecurrence_next!(output::CuArray, A, B, C, z::CuArray, p0::CuArray,
-    p1::CuArray, num_points::Integer)
+function gpuforwardrecurrence_next!(output::CuArray, A, B, C, z::CuArray, p0::CuArray, p1::CuArray)
 
-    # construct vectors
-    Aₙ = fill(A, num_points)
-    Bₙ = fill(B, num_points)
-    Cₙ = fill(C, num_points)
-
-    # calculate and return the next recurrence
-    @. output = (Aₙ * z + Bₙ) * p1 - Cₙ * p0
+    @. output = (A * z + B) * p1 - C * p0
 end

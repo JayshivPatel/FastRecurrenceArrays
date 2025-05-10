@@ -128,14 +128,17 @@ function gpu_inplace!(start_index::Integer, f::AbstractVector, x::AbstractVector
         gpu_fₓ = CuArray(f)
 
         # initialise arrays for the forward computation
-        gpu_p0, gpu_p1, gpu_next = CuArray(p0), CuArray(p1), CuArray{eltype(x)}(undef, num_points)
+        gpu_p0 = CuArray(p0)
+        gpu_p1 = CuArray(p1)
+        gpu_next = CuArray{eltype(x)}(undef, num_points)
 
         num_coeffs == 1 && return Array(gpu_bn1)
 
         for n = start_index:num_coeffs-1
-            gpuforwardrecurrence_next!(gpu_next, A[n], B[n], C[n], gpu_x, gpu_p0, gpu_p1, num_points)
-
-            gpu_p0, gpu_p1 = gpu_p1, gpu_next
+            gpuforwardrecurrence_next!(gpu_next, A[n], B[n], C[n], gpu_x, gpu_p0, gpu_p1)
+            
+            @. gpu_p0 = gpu_p1
+            @. gpu_p1 = gpu_next
 
             @. gpu_fₓ += (gpu_p1 * c[n+1])
         end
