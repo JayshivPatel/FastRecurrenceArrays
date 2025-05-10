@@ -34,13 +34,13 @@ import Test: @test, @testset
 
     @testset "Clenshaw" begin
         # clenshaw - no data (columnwise)
-        @test ThreadedClenshaw(inv.(1:N), rec_U..., x).f ≈ clenshaw(inv.(1:N), rec_U..., x);
+        @test ThreadedClenshaw(inv.(1:N), rec_U, x).f ≈ clenshaw(inv.(1:N), rec_U..., x);
 
         # clenshaw - data (columnwise)
-        @test ThreadedClenshaw(inv.(1:N), rec_U..., [x[1]], [x[2]], [x[3]]).f[1] ≈ 
+        @test ThreadedClenshaw(inv.(1:N), rec_U, [x[1]], [x[2]], [x[3]]).f[1] ≈ 
             dot(collect(inv.(1:N)),RecurrenceArray(x[1], rec_U, x[2:3])[1:N]);
 
         # forward-inplace correctness (columnwise)
-        @test ThreadedClenshaw(inv.(1:N), rec_U..., x).f ≈ ThreadedInplace(inv.(1:N), rec_U, x).f;
+        @test ThreadedClenshaw(inv.(1:N), rec_U, x).f ≈ ThreadedInplace(inv.(1:N), rec_U, x).f;
     end
 end

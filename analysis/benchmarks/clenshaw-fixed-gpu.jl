@@ -1,7 +1,7 @@
 using FastRecurrenceArrays, BenchmarkTools
 
 # choose points
-x = Float32.(-10.0:0.02:(10.0-0.02));
+x = range(Float32(-10), Float32(10), 1000);
 
 # num vectors
 M = length(x);
@@ -13,12 +13,12 @@ N = 100000;
 rec_U = (2 * ones(Float32, N), zeros(Float32, N), ones(Float32, N+1));
 
 # parameters
-params = (Float32.(inv.(1:N)), rec_U..., x);
+params = (Float32.(inv.(1:N)), rec_U, x);
 
 suite = BenchmarkGroup();
 
-suite["fixed"] = @benchmarkable FixedClenshaw(params...) samples = 100 seconds = 500;
-suite["gpu"] = @benchmarkable GPUClenshaw(params...) samples = 100 seconds = 500;
+suite["fixed"] = @benchmarkable FixedClenshaw(params) samples = 100 seconds = 500;
+suite["gpu"] = @benchmarkable GPUClenshaw(params) samples = 100 seconds = 500;
 
 results = run(suite, verbose = true);
 
