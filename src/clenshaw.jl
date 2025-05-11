@@ -5,9 +5,7 @@ export FixedClenshaw, ThreadedClenshaw, GPUClenshaw
 
 # constructors
 
-function FixedClenshaw(c::AbstractVector, (A, B, C), x::AbstractVector)
-    return clenshaw(c, A, B, C, x)
-end
+FixedClenshaw(c::AbstractVector, (A, B, C), x::AbstractVector) = clenshaw(c, A, B, C, x)
 
 function ThreadedClenshaw(c::AbstractVector, (A, B, C), x::AbstractVector)
     f = Vector{eltype(x)}(undef, length(x))
@@ -25,8 +23,6 @@ function GPUClenshaw(c::AbstractVector, (A, B, C), x::AbstractVector)
     B = checkandconvert(B)
     C = checkandconvert(C)
     x = checkandconvert(x)
-    p0 = checkandconvert(p0)
-    p1 = checkandconvert(p1)
 
     num_points = length(x)
     num_coeffs = length(c)
@@ -36,28 +32,25 @@ function GPUClenshaw(c::AbstractVector, (A, B, C), x::AbstractVector)
     num_coeffs == 0 && return CUDA.zeros(eltype(x), num_points)
 
     # copy the data to the GPU
-    gpu_x = CuArray(x)
-    gpu_p0 = CuArray(p0)
-    gpu_p1 = CuArray(p1)
+    gpu_x, gpu_A, gpu_B, gpu_C, gpu_c = CuArray(x), CuArray(A), CuArray(B), CuArray(C), CuArray(c)
 
     # initialise arrays for the clenshaw computation
     gpu_bn2 = CUDA.zeros(eltype(x), num_points)
     gpu_bn1 = CUDA.fill(convert(eltype(x), c[num_coeffs]), num_points)
     gpu_next = CuArray{eltype(x)}(undef, num_points)
-    
     gpu_fₓ = CuArray{eltype(x)}(undef, num_points)
 
     num_coeffs == 1 && return Array(gpu_bn1)
 
     @inbounds for n = num_coeffs-1:-1:2
         # bₙ(x) = fₙ + (Aₙx + Bₙ)bₙ₊₁(x) - Cₙ₊₁bₙ₊₂(x) 
-        @. gpu_next = c[n] + (A[n] * gpu_x + B[n]) * gpu_bn1 - C[n+1] * gpu_bn2
+        gpu_next .= view(gpu_c, n) .+ (view(gpu_A, n) .* gpu_x .+ view(gpu_B, n)) .* gpu_bn1 .- view(gpu_C, n+1) .* gpu_bn2
 
         @. gpu_bn2 = gpu_bn1
         @. gpu_bn1 = gpu_next
     end
 
-    @. gpu_fₓ = c[1] + (A[1] * gpu_x + B[1]) * gpu_bn1 - C[2] * gpu_bn2
+    gpu_fₓ .= view(gpu_c, 1) .+ (view(gpu_A, 1) .* gpu_x .+ view(gpu_B, 1)) .* gpu_bn1 .- view(gpu_C, 2) .* gpu_bn2
 
     return gpu_fₓ
 end

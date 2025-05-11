@@ -26,8 +26,16 @@ import Test: @test, @testset
     @testset "Clenshaw" begin
         # clenshaw
         @test FixedClenshaw(inv.(1:N), rec_U, x) ≈ clenshaw(inv.(1:N), rec_U..., x);
-        
-        # forward-inplace correctness
-        @test FixedClenshaw(inv.(1:N), rec_U, x) ≈ ForwardInplace(inv.(1:N), rec_U, x).f;
+
+    end
+
+    @testset "Inplace" begin   
+        # forward-inplace - no data
+        @test ForwardInplace(inv.(1:N), rec_U, x) ≈ clenshaw(inv.(1:N), rec_U..., x);
+
+        # forward-inplace - data
+        ξ = @. inv(x + sign(x)sqrt(x^2-1));
+        #@test ForwardInplace(inv.(1:N), rec_U, x, [ξ'; ξ'.^2])[1] ≈ 
+            #dot(FixedRecurrenceArray(x, rec_U, N, [ξ'; ξ'.^2])[:, 1], inv.(1:N));
     end
 end

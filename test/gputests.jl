@@ -18,12 +18,12 @@ import Test: @test, @testset
     rec_U = (2 * ones(Float32, N), zeros(Float32, N), ones(Float32, N+1));
     @testset "Forward" begin
         # GPU forward recurrence - no data
-        @test permutedims(GPURecurrenceArray([x[1]], rec_U, N)) ≈ chebyshevu.(0:N-1, x[1]);
+        @test GPURecurrenceArray([x[1]], rec_U, N) ≈ chebyshevu.(0:N-1, x[1]);
 
         # GPU forward recurrence - data
         # only check first few to avoid backwards swap in adaptive version
         ξ = @. inv(x + sign(x)sqrt(x^2-1));
-        @test permutedims(GPURecurrenceArray(x, rec_U, N, [ξ'; ξ'.^2])[:, 1:4]) ≈ 
+        @test GPURecurrenceArray(x, rec_U, N, [ξ'; ξ'.^2])[1:4, :] ≈ 
             RecurrenceArray(x, rec_U, [ξ'; ξ'.^2])[1:4, :] atol=1e-6;
     end
 
@@ -41,7 +41,7 @@ import Test: @test, @testset
         end
         @testset "LogKernel" begin
             # GPU forward inplace (logkernel)
-            @test log.(abs.(10 .- axes(P, 1)')) * f ≈ GPUInplaceLogKernel(N, [Float32(10.0)], ff).f[1]
+            @test log.(abs.(10 .- axes(P, 1)')) * f ≈ GPUInplaceLogKernel(N, [Float32(10.0)], ff)[1]
         end
     end
 end

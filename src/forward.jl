@@ -10,7 +10,7 @@ export FixedRecurrenceArray, ThreadedRecurrenceArray, PartitionedRecurrenceArray
 
 # constructors
 
-FixedRecurrenceArray(z::AbstractVector, (A, B, C), n::Integer)= 
+FixedRecurrenceArray(z::AbstractVector, (A, B, C), n::Integer) = 
     Forward(z, (A, B, C), n, Base.zeros(eltype(z), 1, length(z)))
 
 FixedRecurrenceArray(z::AbstractVector, (A, B, C), n::Integer, input_data::AbstractMatrix{T}) where T = 
@@ -70,13 +70,12 @@ function ForwardTransposed(z::AbstractVector, (A, B, C), n::Integer,
 
     output_data = similar(input_data, M, n)
 
-    input_data_transposed = permutedims(input_data)
-
     if N < 2
         @. output_data[:, 1] = Base.one(T)
         @. output_data[:, 2] = (A[1] * z + B[1]) * Base.one(T)
         N = 2
     else
+        input_data_transposed = transpose(input_data)
         output_data[axes(input_data_transposed)...] = input_data_transposed
     end
 
@@ -100,19 +99,18 @@ function GPUForward(z::AbstractVector, (A, B, C), n::Integer, input_data::Abstra
     N, M = size(input_data)
 
     # copy the data onto the GPU
-    gpu_z = CuArray(z)
+    gpu_z, gpu_A, gpu_B, gpu_C = CuArray(z), CuArray(A), CuArray(B), CuArray(C)
 
     # allocate a fixed size output matrix on the GPU
-    gpu_output_data = CuArray{T}(undef, (n, M))
-
-    input_data_transposed = permutedims(input_data)
+    gpu_output_data = CuArray{T}(undef, (M, n))
 
     if N < 2
         @. gpu_output_data[:, 1] = CUDA.one(T)
-        @. gpu_output_data[:, 2] = (A[1] * gpu_z + B[1]) * gpu_output_data[:, 1]
+        gpu_output_data[:, 2] .= (view(gpu_A, 1) .* gpu_z .+ view(gpu_B, 1)) .* CUDA.one(T)
         N = 2
     else
-        gpu_output_data[axes(input_data_transposed)...] = input_data_transposed
+        gpu_input_data = CuArray(transpose(input_data))
+        gpu_output_data[axes(gpu_input_data)...] = gpu_input_data
     end
 
     # initialise views for forward computation
@@ -122,13 +120,12 @@ function GPUForward(z::AbstractVector, (A, B, C), n::Integer, input_data::Abstra
     # populate result
     @inbounds for i = N:n-1
         gpu_next = view(gpu_output_data, :, i+1)
-        @. gpu_next = (A[i] * gpu_z + B[i]) * gpu_p1 - C[i] * gpu_p0
+        gpu_next .= (view(gpu_A, i) .* gpu_z .+ view(gpu_B, i)) .* gpu_p1 .- view(gpu_C, i) .* gpu_p0
 
         gpu_p0, gpu_p1 = gpu_p1, gpu_next
     end
 
     return transpose(gpu_output_data)
-    
 end
 
 # Float32/ComplexF32 helper function

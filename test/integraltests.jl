@@ -15,13 +15,13 @@ import Test: @test, @testset
         # Forward recurrence (stieltjes)
         @test inv.(10 .- x') * f ≈ FixedStieltjes(N, [10.0], ff)[1];
         # Forward inplace (stieltjes)
-        @test FixedStieltjes(N, [10.0], ff)[1] ≈ InplaceStieltjes(N, [10.0], ff).f[1];
+        @test FixedStieltjes(N, [10.0], ff)[1] ≈ InplaceStieltjes(N, [10.0], ff)[1];
     end
 
     @testset "LogKernel" begin
         # Forward recurrence (logkernel)
         @test log.(abs.(10 .- x')) * f ≈ FixedLogKernel(N, [10.0], ff)[1];
         # Forward inplace (logkernel)
-        @test FixedLogKernel(N, [10.0], ff)[1] ≈ InplaceLogKernel(N, [10.0], ff).f[1];
+        @test FixedLogKernel(N, [10.0], ff)[1] ≈ InplaceLogKernel(N, [10.0], ff)[1];
     end
 end
