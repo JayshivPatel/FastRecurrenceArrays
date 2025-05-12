@@ -83,7 +83,7 @@ function _GPUInplace(c::AbstractVector, (A, B, C), x::AbstractVector, input_data
 
     if N < 2
         gpu_p0 .= CUDA.one(T)
-        gpu_p1 .= (view(gpu_A, 1) .* gpu_z .+ view(gpu_B, 1)) .* CUDA.one(T)
+        gpu_p1 .= (view(gpu_A, 1) .* gpu_x .+ view(gpu_B, 1)) .* CUDA.one(T)
 
         gpu_f .= view(gpu_c, 1) .* gpu_p0 .+ view(gpu_c, 1) .* gpu_p1
         N = 2
