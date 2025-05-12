@@ -12,7 +12,7 @@ import Test: @test, @testset
 @assert has_cuda_gpu()
 
 @testset "GPU" begin
-    x = Float32.([1.0001, 5.0, 10.0]);
+    x = ComplexF32.([0.1+0.1im, 1.0001, 10.0]);
     M = length(x);
     N = 15;
     rec_U = (2 * ones(Float32, N), zeros(Float32, N), ones(Float32, N+1));
@@ -37,11 +37,11 @@ import Test: @test, @testset
     @testset "Integrals" begin
         @testset "Stieltjes" begin
             # GPU forward inplace (stieltjes)
-            @test inv.(10 .- axes(P, 1)') * f ≈ Array(GPUInplaceStieltjes(N, [Float32(10.0)], ff))[1]
+            @test inv.(x[1] .- axes(P, 1)') * f ≈ Array(GPUInplaceStieltjes(N, [x[1]], ff))[1]
         end
         @testset "LogKernel" begin
             # GPU forward inplace (logkernel)
-            @test log.(abs.(10 .- axes(P, 1)')) * f ≈ Array(GPUInplaceLogKernel(N, [Float32(10.0)], ff))[1]
+            @test log.(abs.(x[1] .- axes(P, 1)')) * f ≈ Array(GPUInplaceLogKernel(N, [x[1]], ff))[1]
         end
     end
 end

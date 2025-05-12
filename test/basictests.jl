@@ -8,7 +8,7 @@ import RecurrenceRelationshipArrays: RecurrenceArray
 import Test: @test, @testset
 
 @testset "BasicTests" begin
-    x = [0.1+0im, 1.0001, 10.0];
+    x = [0.1+0.1im, 1.0001, 10.0];
     M = length(x);
     N = 15;
     rec_U = (2 * ones(N), zeros(N), ones(N+1));
@@ -36,6 +36,6 @@ import Test: @test, @testset
         # forward-inplace - data
         ξ = @. inv(x + sign(x)sqrt(x^2-1));
         @test ForwardInplace(inv.(1:N), rec_U, x, [ξ'; ξ'.^2])[1] ≈ 
-            dot(inv.(1:N), FixedRecurrenceArray(x, rec_U, N, [ξ'; ξ'.^2])[:, 1]);
+            dot(inv.(1:N), RecurrenceArray(x, rec_U, [ξ'; ξ'.^2])[1:N, 1]);
     end
 end

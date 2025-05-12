@@ -131,15 +131,17 @@ end
 # Float32/ComplexF32 helper function
 
 function checkandconvert(x)
-    if eltype(x) <: Complex && eltype(x) != ComplexF32
-        @warn "Converting input vector(s) to ComplexF32 for improved performance..." x=x maxlog=1
-        return ComplexF32.(x)
-    elseif eltype(x) != Float32
+    T = eltype(x)
+    if T <: Complex
+        if T != ComplexF32
+            @warn "Converting input vector(s) to ComplexF32 for improved performance..." x=x maxlog=1
+            return ComplexF32.(x)
+        end
+    elseif T != Float32
         @warn "Converting input vector(s) to Float32 for improved performance..." x=x maxlog=1
         return Float32.(x)
-    else
-        return x
     end
+    return x
 end
 
 # default serial population

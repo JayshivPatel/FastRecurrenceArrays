@@ -13,6 +13,8 @@ function ThreadedClenshaw(c::AbstractVector, (A, B, C), x::AbstractVector)
     @inbounds Threads.@threads for j in axes(x, 1)
         f[j] = clenshaw(c, A, B, C, x[j])
     end
+
+    return f
 end
 
 function GPUClenshaw(c::AbstractVector, (A, B, C), x::AbstractVector)

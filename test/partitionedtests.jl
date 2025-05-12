@@ -7,7 +7,7 @@ import RecurrenceRelationshipArrays: RecurrenceArray
 import Test: @test, @testset
 
 @testset "Partitioned" begin
-    x = [0.1+0im, 1.0001, 10.0];
+    x = [0.1+0.1im, 1.0001, 10.0];
     M = length(x);
     N = 15;
     rec_U = (2 * ones(Float32, N), zeros(Float32, N), ones(Float32, N+1));
