@@ -74,7 +74,7 @@ function _GPUInplace(c::AbstractVector, (A, B, C), x::AbstractVector, input_data
     gpu_f = CuArray{T}(undef, num_points)
 
     # copy the data to the GPU
-    gpu_x, gpu_A, gpu_B, gpu_C, gpu_c = CuArray(x), CuArray(A), CuArray(B), CuArray(C), CuArray(c)
+    gpu_x = CuArray(x)
     gpu_input_data = CuArray(input_data)
 
     gpu_p0 = CuArray{eltype(x)}(undef, num_points)
@@ -82,25 +82,25 @@ function _GPUInplace(c::AbstractVector, (A, B, C), x::AbstractVector, input_data
     gpu_next = CuArray{eltype(x)}(undef, num_points)
 
     if N < 2
-        gpu_p0 .= CUDA.one(T)
-        gpu_p1 .= (view(gpu_A, 1) .* gpu_x .+ view(gpu_B, 1)) .* CUDA.one(T)
+        @. gpu_p0 = CUDA.one(T)
+        @. gpu_p1 = (A[1] * gpu_x + B[1]) * CUDA.one(T)
 
-        gpu_f .= view(gpu_c, 1) .* gpu_p0 .+ view(gpu_c, 1) .* gpu_p1
+        @. gpu_f = c[1] * gpu_p0 + c[1] * gpu_p1
         N = 2
     else
-        gpu_p0 .= gpu_input_data[end-1, :]
-        gpu_p1 .= gpu_input_data[end, :]
+        @. gpu_p0 = gpu_input_data[end-1, :]
+        @. gpu_p1 = gpu_input_data[end, :]
 
-        gpu_f = sum(view(gpu_input_data, i, :) .* view(gpu_c, i) for i in 1:N)
+        gpu_f = sum(view(gpu_input_data, i, :) .* c[i] for i in 1:N)
     end
 
     @inbounds for n = N:num_coeffs-1
-        gpu_next .= (view(gpu_A, n) .* gpu_x .+ view(gpu_B, n)) .* gpu_p1 .- view(gpu_C, n) .* gpu_p0
+        @. gpu_next = (A[n] * gpu_x + B[n]) * gpu_p1 - C[n] * gpu_p0
         
-        gpu_p0 .= gpu_p1
-        gpu_p1 .= gpu_next
+        @. gpu_p0 = gpu_p1
+        @. gpu_p1 = gpu_next
 
-        gpu_f .+= (view(gpu_c, n+1) .* gpu_p1)
+        @. gpu_f += (c[n+1] * gpu_p1)
     end
 
     return gpu_f
