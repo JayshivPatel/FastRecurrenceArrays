@@ -1,6 +1,6 @@
 using FastRecurrenceArrays, ClassicalOrthogonalPolynomials, GLMakie, CUDA
 
-side_length = 100;
+side_length = 1000;
 
 # Generate a 2D square mesh from -π/2 to π/2 in the complex plane
 xs = range(Float32(-π/2), Float32(π/2), length=side_length);
@@ -15,24 +15,24 @@ cuda = CUDA.has_cuda() && CUDA.has_cuda_gpu();
 P = Legendre();
 
 function stieltjestransform(k)
-    f = expand(P, x -> (sin(x + k)^2 * cos(x + k)^2)); 
+    f = expand(P, x -> (sin(x + k) * cos(x + k))); 
     ff = collect(f.args[2][1:N-2]);
 
     if cuda
-        st = GPUInplaceStieltjes(N, mesh, ff).f;
+        st = real(Array(GPUInplaceStieltjes(N, mesh, ff)));
     else
-        st = InplaceStieltjes(N, mesh, ff).f;
+        st = real(InplaceStieltjes(N, mesh, ff));
     end
 
     return reshape(st, side_length, side_length);
 end;
 
 function logtransform(k)
-    f = expand(P, x -> (sin(x + k)^2 * cos(x + k)^2)); 
+    f = expand(P, x -> (sin(x + k) * cos(x + k))); 
     ff = collect(f.args[2][1:N-2]);
 
     if cuda
-        lt = GPUInplaceLogKernel(N, mesh, ff).f;
+        lt = Array(GPUInplaceLogKernel(N, mesh, ff));
     else
         lt = InplaceLogKernel(N, mesh, ff).f;
     end

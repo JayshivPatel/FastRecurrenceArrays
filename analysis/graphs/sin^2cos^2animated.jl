@@ -19,9 +19,9 @@ function stieltjestransform(k)
     ff = collect(f.args[2][1:N-2]);
 
     if cuda
-        st = GPUInplaceStieltjes(N, mesh, ff).f;
+        st = real(Array(GPUInplaceStieltjes(N, mesh, ff)));
     else
-        st = InplaceStieltjes(N, mesh, ff).f;
+        st = real(InplaceStieltjes(N, mesh, ff));
     end
 
     return reshape(st, side_length, side_length);
@@ -32,7 +32,7 @@ function logtransform(k)
     ff = collect(f.args[2][1:N-2]);
 
     if cuda
-        lt = GPUInplaceLogKernel(N, mesh, ff).f;
+        lt = Array(GPUInplaceLogKernel(N, mesh, ff));
     else
         lt = InplaceLogKernel(N, mesh, ff).f;
     end

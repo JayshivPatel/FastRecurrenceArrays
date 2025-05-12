@@ -15,9 +15,9 @@ function stieltjestransform()
     ff = collect(f.args[2][1:N-2]);
 
     if cuda
-        return GPUInplaceStieltjes(N, xs .+ 0im, ff).f;
+        return real(Array(GPUInplaceStieltjes(N, ComplexF32.(xs .+ 0im), ff)));
     else
-        return InplaceStieltjes(N, xs .+ 0im, ff).f;
+        return real(InplaceStieltjes(N, xs .+ 0im, ff));
     end
 end;
 
