@@ -2,7 +2,7 @@
 
 import ClassicalOrthogonalPolynomials: chebyshevu, expand, Legendre
 import CUDA: has_cuda, has_cuda_gpu
-import FastRecurrenceArrays: GPURecurrenceArray, GPUClenshaw, GPUInplaceStieltjes, GPUInplaceLogKernel
+import FastRecurrenceArrays: GPURecurrenceArray, GPUClenshaw, GPUInplace, GPUInplaceStieltjes, GPUInplaceLogKernel
 import LinearAlgebra: dot
 import RecurrenceRelationships: clenshaw
 import RecurrenceRelationshipArrays: RecurrenceArray
@@ -13,7 +13,6 @@ import Test: @test, @testset
 
 @testset "GPU" begin
     x = ComplexF32.([0.1+0.1im, 1.0001, 10.0]);
-    M = length(x);
     N = 15;
     rec_U = (2 * ones(Float32, N), zeros(Float32, N), ones(Float32, N+1));
     @testset "Forward" begin
@@ -30,6 +29,16 @@ import Test: @test, @testset
     @testset "Clenshaw" begin
         # GPU clenshaw
         @test Array(GPUClenshaw(Float32.(inv.(1:N)), rec_U, x)) ≈ clenshaw(Float32.(inv.(1:N)), rec_U..., x)
+    end
+
+    @testset "Inplace" begin   
+        # forward-inplace - no data
+        @test Array(GPUInplace(Float32.(inv.(1:N)), rec_U, x)) ≈ clenshaw(inv.(1:N), rec_U..., x);
+
+        # forward-inplace - data
+        ξ = @. inv(x + sign(x)sqrt(x^2-1));
+        @test Array(GPUInplace(Float32.(inv.(1:N)), rec_U, x, [ξ'; ξ'.^2]))[1] ≈ 
+            dot(inv.(1:N), RecurrenceArray(x, rec_U, [ξ'; ξ'.^2])[1:N, 1]);
     end
 
     P = Legendre(); f = expand(P, exp); ff = Float32.(collect(f.args[2][1:N-2]));

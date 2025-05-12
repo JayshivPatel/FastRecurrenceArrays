@@ -11,7 +11,6 @@ import Test: @test, @testset
 
 @testset "ThreadedTests" begin
     x = [0.1+0.1im, 1.0001, 10.0];
-    M = length(x);
     N = 15;
     rec_U = (2 * ones(N), zeros(N), ones(N+1));
 
