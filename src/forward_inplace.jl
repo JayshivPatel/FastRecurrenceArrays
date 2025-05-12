@@ -82,23 +82,23 @@ function _GPUInplace(c::AbstractVector, (A, B, C), x::AbstractVector, input_data
     gpu_next = CuArray{eltype(x)}(undef, num_points)
 
     if N < 2
-        @. gpu_p0 = CUDA.one(T)
+        gpu_p0 .= CUDA.one(T)
         gpu_p1 .= (view(gpu_A, 1) .* gpu_z .+ view(gpu_B, 1)) .* CUDA.one(T)
 
         gpu_f .= view(gpu_c, 1) .* gpu_p0 .+ view(gpu_c, 1) .* gpu_p1
         N = 2
     else
-        @. gpu_p0 = gpu_input_data[end-1, :]
-        @. gpu_p1 = gpu_input_data[end, :]
+        gpu_p0 .= gpu_input_data[end-1, :]
+        gpu_p1 .= gpu_input_data[end, :]
 
-        gpu_f = sum(view(gpu_input_data, i, :) * view(gpu_c, i) for i in 1:N)
+        gpu_f = sum(view(gpu_input_data, i, :) .* view(gpu_c, i) for i in 1:N)
     end
 
     @inbounds for n = N:num_coeffs-1
         gpu_next .= (view(gpu_A, n) .* gpu_x .+ view(gpu_B, n)) .* gpu_p1 .- view(gpu_C, n) .* gpu_p0
         
-        @. gpu_p0 = gpu_p1
-        @. gpu_p1 = gpu_next
+        gpu_p0 .= gpu_p1
+        gpu_p1 .= gpu_next
 
         gpu_f .+= (view(gpu_c, n+1) .* gpu_p1)
     end

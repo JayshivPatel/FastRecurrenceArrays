@@ -46,8 +46,8 @@ function GPUClenshaw(c::AbstractVector, (A, B, C), x::AbstractVector)
         # bₙ(x) = fₙ + (Aₙx + Bₙ)bₙ₊₁(x) - Cₙ₊₁bₙ₊₂(x) 
         gpu_next .= view(gpu_c, n) .+ (view(gpu_A, n) .* gpu_x .+ view(gpu_B, n)) .* gpu_bn1 .- view(gpu_C, n+1) .* gpu_bn2
 
-        @. gpu_bn2 = gpu_bn1
-        @. gpu_bn1 = gpu_next
+        gpu_bn2 .= gpu_bn1
+        gpu_bn1 .= gpu_next
     end
 
     gpu_fₓ .= view(gpu_c, 1) .+ (view(gpu_A, 1) .* gpu_x .+ view(gpu_B, 1)) .* gpu_bn1 .- view(gpu_C, 2) .* gpu_bn2

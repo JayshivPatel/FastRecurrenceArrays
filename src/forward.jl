@@ -105,7 +105,7 @@ function GPUForward(z::AbstractVector, (A, B, C), n::Integer, input_data::Abstra
     gpu_output_data = CuArray{T}(undef, (M, n))
 
     if N < 2
-        @. gpu_output_data[:, 1] = CUDA.one(T)
+        gpu_output_data[:, 1] .= CUDA.one(T)
         gpu_output_data[:, 2] .= (view(gpu_A, 1) .* gpu_z .+ view(gpu_B, 1)) .* CUDA.one(T)
         N = 2
     else
