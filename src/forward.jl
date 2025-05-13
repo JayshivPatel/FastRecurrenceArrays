@@ -34,6 +34,12 @@ GPURecurrenceArray(z::AbstractVector, (A, B, C), n::Integer) =
 GPURecurrenceArray(z::AbstractVector, (A, B, C), n::Integer, input_data::AbstractMatrix{T}) where T = 
     GPUForward(z, (A, B, C), n, input_data)
 
+PartitionedRecurrenceArray(z::AbstractVector, (A, B, C), n::Integer) = 
+    PartitionedForward(z, (A, B, C), n, Base.zeros(eltype(z), 1, length(z)))
+
+PartitionedRecurrenceArray(z::AbstractVector, (A, B, C), n::Integer, input_data::AbstractMatrix{T}) where T = 
+    PartitionedForward(z, (A, B, C), n, input_data)
+
 function Forward(z::AbstractVector, (A, B, C), n::Integer,
     input_data::AbstractMatrix{T}, populate!::Function=defaultforwardrecurrence!) where T
 
@@ -179,7 +185,8 @@ end
 
 # struct
 
-mutable struct PartitionedRecurrenceArray
+mutable struct PartitionedArray
+    type::Type # type of remotely stored data
     workers::Vector # list of workers 
     partitions::Vector  # list of indexes partitioned on workers
     N::Integer # number of recurrences
@@ -187,7 +194,7 @@ mutable struct PartitionedRecurrenceArray
 end
 
 
-function PartitionedRecurrenceArray(z::AbstractVector, (A, B, C), n::Integer,
+function PartitionedForward(z::AbstractVector, (A, B, C), n::Integer,
     input_data::AbstractMatrix{T}, workers::Vector=workers()) where T
 
     @assert n >= 2
@@ -239,17 +246,17 @@ function PartitionedRecurrenceArray(z::AbstractVector, (A, B, C), n::Integer,
         ) for worker in workers]
     )
 
-    return PartitionedRecurrenceArray{T,typeof(A),typeof(B),typeof(C)}(A, B, C, workers, partitions, n, M)
+    return PartitionedArray(T, workers, partitions, n, M)
 end
 
 # properties and access
 
-size(K::PartitionedRecurrenceArray) = (K.N, K.M)
-copy(K::PartitionedRecurrenceArray) = K
+size(K::PartitionedArray) = (K.N, K.M)
+copy(K::PartitionedArray) = K
 
 # display
 
-function show(io::IO, ::MIME"text/plain", K::PartitionedRecurrenceArray)
+function show(io::IO, ::MIME"text/plain", K::PartitionedArray)
     s = size(K)
     println(
         io,
@@ -260,13 +267,13 @@ end
 
 # partitioned indexing
 
-function getindex(K::PartitionedRecurrenceArray, i, j)
+function getindex(K::PartitionedArray, i, j)
 
     i, j = (convert_to_range(i, K.N), convert_to_range(j, K.M))
 
     workers, local_ranges = global_to_local(K, j)
 
-    result = zeros(T, (length(i), length(j)))
+    result = zeros(K.type, (length(i), length(j)))
 
     column_count = 1
 
@@ -285,7 +292,7 @@ function getindex(K::PartitionedRecurrenceArray, i, j)
     return result
 end
 
-function global_to_local(K::PartitionedRecurrenceArray, column_range::AbstractUnitRange)
+function global_to_local(K::PartitionedArray, column_range::AbstractUnitRange)
     workers, local_ranges = [], []
 
     for (worker, partition) in zip(K.workers, K.partitions)
