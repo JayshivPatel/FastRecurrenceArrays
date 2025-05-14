@@ -10,7 +10,7 @@ export FixedStieltjes, InplaceStieltjes, ThreadedInplaceStieltjes, GPUInplaceSti
 
 function FixedStieltjes(n::Integer, x::AbstractVector, f::AbstractVector)
     rec_P, input_data = stieltjes_init(n, x)
-    return dot(f, FixedRecurrenceArray(x, rec_P, n - 2, input_data))
+    return transpose(FixedRecurrenceArray(x, rec_P, n, input_data)) * f
 end
 
 # Inplace
@@ -37,7 +37,7 @@ end
 
 function FixedLogKernel(n::Integer, x::AbstractVector, f::AbstractVector)
     rec_P, input_data = logkernel_init(n, x)
-    return real.(dot(f, FixedRecurrenceArray(x, rec_P, n - 2, input_data)))
+    return real.(transpose(FixedRecurrenceArray(x, rec_P, n, input_data)) * f)
 end
 
 # Inplace
