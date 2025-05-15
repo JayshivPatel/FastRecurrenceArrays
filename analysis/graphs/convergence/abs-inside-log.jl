@@ -3,9 +3,9 @@ using FastRecurrenceArrays, RecurrenceRelationshipArrays, SingularIntegrals,
 
 x = range(ComplexF32(-1.0), ComplexF32(1.0), 1000);
 
-f_g(x, z) = log(z-x)*exp(x); r = 3:100;
+f_g(x, z) = log(z-x)*exp(x); r = 3:200;
 
-P = Legendre(); rec_P = ClassicalOrthogonalPolynomials.recurrencecoefficients(P); f_N = expand(P, exp);
+P = Legendre(); f_N = expand(P, exp);
 
 function logtransform(n)
     fixed = Vector{Float32}(undef, length(x));

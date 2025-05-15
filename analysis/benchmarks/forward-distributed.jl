@@ -16,7 +16,7 @@ params = (x, rec_U, N);
 function run_benchmark()
     println("PartitionedRecurrenceArray - " * string(N) * "×" * string(M))
     println("Workers: " * string(length(workers())))
-    println(median(@benchmark PartitionedRecurrenceArray($params...) samples = 100))
+    println(median(@benchmark PartitionedRecurrenceArray($params...) samples = 100 seconds = 500))
 end
 
 run_benchmark()

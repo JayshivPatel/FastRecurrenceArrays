@@ -3,9 +3,9 @@ using FastRecurrenceArrays, RecurrenceRelationshipArrays, SingularIntegrals,
 
 x = range(ComplexF32(1.0001), ComplexF32(10.0), 1000);
 
-f_g(x, z) = exp(x)/(z-x); r = 3:100;
+f_g(x, z) = exp(x)/(z-x); r = 3:200;
 
-P = Legendre(); rec_P = ClassicalOrthogonalPolynomials.recurrencecoefficients(P); f_N = expand(P, exp);
+P = Legendre(); f_N = expand(P, exp);
 
 function stieltjestransform(n)
     fixed = Vector{Float32}(undef, length(x));
@@ -15,12 +15,12 @@ function stieltjestransform(n)
     return fixed;
 end;
 
-baseline = [Float32.(real.((inv.(x₀ .- axes(P, 1)') * f_N))) for x₀ in x];
+baseline = [Float32.(real.((inv.(x₀ .- axes(P, 1)')) * f_N)) for x₀ in x];
 differences1 = Vector{Float32}(undef, length(r));
 differences2 = Vector{Float32}(undef, length(r));
 
 for i=r
-    st = logtransform(i);
+    st = stieltjestransform(i);
     valid = .!(isnan.(st) .| isnan.(baseline));
     differences1[i - 2] = norm(st[valid] .- baseline[valid]);
 

@@ -3,9 +3,9 @@ using FastRecurrenceArrays, RecurrenceRelationshipArrays, SingularIntegrals,
 
 x = range(ComplexF32(-1.0), ComplexF32(1.0), 1000);
 
-f_g(x, z) = exp(x)/(z-x); r = 3:50;
+f_g(x, z) = exp(x)/(z-x); r = 3:200;
 
-P = Legendre(); rec_P = ClassicalOrthogonalPolynomials.recurrencecoefficients(P); f_N = expand(P, exp);
+P = Legendre(); f_N = expand(P, exp);
 
 function stieltjestransform(n)
     fixed = Vector{Float32}(undef, length(x));
