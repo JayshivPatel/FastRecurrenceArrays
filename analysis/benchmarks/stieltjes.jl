@@ -12,7 +12,7 @@ println(median(run(
     @benchmarkable collect(inv.($x .- $axes(P, 1)') * $f_N) samples = 100 seconds = 500
 )));
 
-n = 15;
+n = 100;
 
 ff = Float32.(collect(f_N.args[2][1:n]));
 println("Stieltjes Transform FixedStieltjes");
