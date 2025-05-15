@@ -24,7 +24,7 @@ function gaussquadrature(n)
 end;
 
 baseline = [Float32.(log.(abs.(x₀ .- axes(P, 1)')) * f_N) for x₀ in x];
-
+set_theme!(fontsize = 25)
 fig = Figure(size = (1000, 1000));
 
 sg = SliderGrid(

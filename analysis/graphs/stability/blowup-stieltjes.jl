@@ -26,7 +26,7 @@ end;
 baseline = [Float32.(real.((inv.(x₀ .- axes(P, 1)')) * f_N)) for x₀ in x];
 
 fig = Figure(size = (1000, 1000));
-
+set_theme!(fontsize = 25)
 sg = SliderGrid(
     fig[4, 1],
     (
