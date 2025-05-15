@@ -3,7 +3,7 @@ using FastRecurrenceArrays, RecurrenceRelationshipArrays, SingularIntegrals,
 
 x = range(ComplexF32(-1.0), ComplexF32(1.0), 1000);
 
-f_g(x, z) = log(z-x)*exp(x); r = [3:10; floor.(Int, logrange(1e1, 1e4, 100))];
+f_g(x, z) = log(z-x)*exp(x); r = [3:9; unique(floor.(Int, logrange(1e1, 1e4, 100)))];
 
 P = Legendre(); f_N = expand(P, exp);
 
