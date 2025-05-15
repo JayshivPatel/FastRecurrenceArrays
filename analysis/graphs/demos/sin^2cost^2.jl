@@ -46,7 +46,7 @@ sg = SliderGrid(
     fig[3, 1:3],
     (
         label=L"k",
-        range=-pi/2:0.01:pi/2,
+        range=-π/2:0.01:π /2,
         format="{:.2f}",
         startvalue=0,
         color_active=:grey30,
