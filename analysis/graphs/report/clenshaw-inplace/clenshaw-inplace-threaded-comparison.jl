@@ -12,8 +12,8 @@ fig = Figure(size = (6inch, 3inch));
 ax = Axis(
     fig[1, 1],
     title=L"\textbf{Thread scaling of} clenshaw/forward-inplace \textbf{calculating $10^4$ recurrences at $10^4$ points}",
-    xlabel="Threads",
-    ylabel="Time [s]",
+    xlabel=L"\textbf{Threads}",
+    ylabel=L"\textbf{Time [s]}",
     xticks=(2:2:8)
 );
 

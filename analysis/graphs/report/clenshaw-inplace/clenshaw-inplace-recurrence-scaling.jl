@@ -13,19 +13,19 @@ column_i = [3.72600e-6, 3.63000e-6, 4.64900e-6, 2.30490e-5];
 pt = 4/3;
 inch = 96;
 
-set_theme!(theme_latexfonts(), fontsize=round(11pt));
-fig = Figure(size = (6inch, 5inch));
+set_theme!(theme_latexfonts(), fontsize=round(11pt), linewidth=2, markersize=13);
+fig = Figure(size = (7inch, 5inch));
 ax = Axis(
     fig[1, 1],
     title=L"\textbf{Recurrence scaling of } clenshaw/forward-inplace \textbf{ at $10$ points}",
-    xlabel="Recurrences",
-    ylabel="Time [s]",
+    xlabel=L"\textbf{Recurrences}",
+    ylabel=L"\textbf{Time [s]}",
     yscale=log10,
     xscale=log10,
     limits=(nothing, (1e-9, 1))
 );
 
-f_c = scatterlines!(ax, recurrences, fixed_c);
+f_c = scatterlines!(ax, recurrences, fixed_c, marker=:utriangle);
 g_c = scatterlines!(ax, recurrences, gpu_c);
 c_c = scatterlines!(ax, recurrences, column_c);
 
@@ -33,18 +33,17 @@ f_color = f_c.color;
 g_color = g_c.color;
 c_color = c_c.color;
 
-f_i = scatterlines!(ax, recurrences, fixed_i, color=f_color, linestyle=:dot);
+f_i = scatterlines!(ax, recurrences, fixed_i, color=f_color, linestyle=:dot, marker=:utriangle);
 g_i = scatterlines!(ax, recurrences, gpu_i, color=g_color, linestyle=:dot);
 c_i = scatterlines!(ax, recurrences, column_i, color=c_color, linestyle=:dot);
 
-axislegend(
-    ax,
-    [f_c, f_i, g_c, g_i, c_c, c_i],
-    ["Fixed clenshaw", "Fixed forward-inplace", "GPU clenshaw", "GPU forward-inplace", "Threaded clenshaw", "Threaded forward-inplace"],
-    position = :rb,
-    orientation=:vertical,
-    backgroundcolor = (:white, 0.85)
-);
+Legend(
+    fig[2, 1],
+    [[f_c, g_c, c_c], [f_i, g_i, c_i]],
+    [["Control", "GPU", "Threaded (8)"], ["Control", "GPU", "Threaded (8)"]],
+    ["clenshaw", "forward-inplace"],
+    orientation=:horizontal
+)
 
 fig
 

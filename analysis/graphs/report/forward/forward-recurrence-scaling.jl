@@ -10,18 +10,18 @@ distributed = [1.47810e-2, 1.25400e-2, 1.48820e-2, 1.52990e-2];
 pt = 4/3;
 inch = 96;
 
-set_theme!(theme_latexfonts(), fontsize=round(11pt));
+set_theme!(theme_latexfonts(), fontsize=round(11pt), linewidth=2, markersize=13);
 fig = Figure(size = (6inch, 5inch));
 ax = Axis(
     fig[1, 1],
     title=L"\textbf{Recurrence scaling of }  forward'  \textbf{ at 10 points}",
-    xlabel="Recurrences",
-    ylabel="Time [s]",
+    xlabel=L"\textbf{Recurrences}",
+    ylabel=L"\textbf{Time [s]}",
     yscale=log10,
     xscale=log10
 );
 
-f = scatterlines!(ax, recurrences, fixed);
+f = scatterlines!(ax, recurrences, fixed, linestyle=:dash);
 g = scatterlines!(ax, recurrences, gpu);
 c = scatterlines!(ax, recurrences, column);
 r = scatterlines!(ax, recurrences, row);
@@ -30,7 +30,7 @@ d = scatterlines!(ax, recurrences, distributed);
 axislegend(
     ax,
     [f, g, c, r, d],
-    ["Fixed", "GPU", "Column (8)", "Row (2)", "Distributed (4)"],
+    ["Control", "GPU", "Column (8)", "Row (2)", "Distributed (4)"],
     position = :rb,
     orientation=:vertical,
     backgroundcolor = (:white, 0.85)
