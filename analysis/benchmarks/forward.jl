@@ -8,15 +8,15 @@ rec_U = (2 * ones(Float32, N), zeros(Float32, N), ones(Float32, N+1));
 params = (x, rec_U, N);
 
 println("FixedRecurrenceArray - " * string(N) * " recurrences on " * string(M) * " points.");
-println(median(run(@benchmarkable FixedRecurrenceArray($params...) samples = 100)));
+println(median(run(@benchmarkable FixedRecurrenceArray($params...) samples = 100 seconds = 500)));
 
 println("ThreadedRecurrenceArray (row-wise) - " * string(N) * " recurrences on " * string(M) * " points.");
 println("Threads - " * string(Threads.nthreads()));
-println(median(run(@benchmarkable ThreadedRecurrenceArray($params..., Val(1)) samples = 100)));
+println(median(run(@benchmarkable ThreadedRecurrenceArray($params..., Val(1)) samples = 100 seconds = 500)));
 
 println("ThreadedRecurrenceArray (column-wise) - " * string(N) * " recurrences on " * string(M) * " points.");
 println("Threads - " * string(Threads.nthreads()));
-println(median(run(@benchmarkable ThreadedRecurrenceArray($params..., Val(2)) samples = 100)));
+println(median(run(@benchmarkable ThreadedRecurrenceArray($params..., Val(2)) samples = 100 seconds = 500)));
 
 println("GPURecurrenceArray - " * string(N) * " recurrences on " * string(M) * " points.");
-println(median(run(@benchmarkable GPURecurrenceArray($params...) samples = 100)));
+println(median(run(@benchmarkable GPURecurrenceArray($params...) samples = 100 seconds = 500)));

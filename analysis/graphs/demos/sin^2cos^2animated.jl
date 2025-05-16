@@ -9,7 +9,7 @@ ys = range(Float32(-π/2), Float32(π/2), length=side_length);
 mesh = vec([x + y*im for x in xs, y in ys]);
 
 N = 15;
-set_theme!(fontsize = 25);
+
 cuda = CUDA.has_cuda() && CUDA.has_cuda_gpu();
 
 P = Legendre();
@@ -40,6 +40,7 @@ function logtransform(k)
     return reshape(lt, side_length, side_length);
 end;
 
+set_theme!(fontsize = 25);
 fig = Figure(size = (1500, 1000));
 
 k = Observable(0.0)
