@@ -11,7 +11,8 @@ set_theme!(
     fontsize=round(11pt),
     linewidth=2,
     markersize=13,
-    fonts=(regular="charter", bold="charter bold", italic="charter italic", bold_italic="charter bold italic")
+    fonts=(regular="charter", bold="charter bold", italic="charter italic", bold_italic="charter bold italic"),
+    figure_padding=1,
 );
 
 fig = Figure(size=(6.27inch, 3inch), padding=0);

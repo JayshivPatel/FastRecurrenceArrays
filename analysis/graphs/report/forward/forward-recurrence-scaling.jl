@@ -7,17 +7,18 @@ column = [4.89500e-6, 4.69200e-6, 7.75700e-6, 6.73280e-5];
 row = [1.42510e-5, 1.67207e-4, 2.41300e-3, 1.86570e-2];
 distributed = [1.47810e-2, 1.25400e-2, 1.48820e-2, 1.52990e-2];
 
-pt = 4/3;
+pt = 4 / 3;
 inch = 96;
 
 set_theme!(
     fontsize=round(11pt),
     linewidth=2,
     markersize=13,
-    fonts = (regular = "charter", bold = "charter bold", italic = "charter italic", bold_italic = "charter bold italic")
+    fonts=(regular="charter", bold="charter bold", italic="charter italic", bold_italic="charter bold italic"),
+    figure_padding=1,
 );
 
-fig = Figure(size = (6.27inch, 5inch));
+fig = Figure(size=(6.27inch, 5inch));
 ax = Axis(
     fig[1, 1],
     title="Recurrence scaling of forward' at 10 points",
@@ -37,9 +38,9 @@ axislegend(
     ax,
     [f, g, c, r, d],
     ["Control", "GPU", "Column (8)", "Row (2)", "Distributed (4)"],
-    position = :rb,
+    position=:rb,
     orientation=:vertical,
-    backgroundcolor = (:white, 0.85)
+    backgroundcolor=(:white, 0.85)
 );
 
 

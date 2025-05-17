@@ -10,19 +10,20 @@ fixed_i = [1.43681e-7, 7.15701e-7, 9.36000e-6, 7.13820e-5, 1.02100e-3, 8.63400e-
 gpu_i = [1.11700e-3, 4.94688e-4, 5.38774e-4, 5.28650e-4, 8.82094e-4, 2.21600e-3];
 column_i = [3.72600e-6, 3.85100e-6, 7.70500e-6, 3.02270e-5, 4.50289e-4, 4.79400e-3];
 
-pt = 4/3;
+pt = 4 / 3;
 inch = 96;
 
 set_theme!(
     fontsize=round(11pt),
     linewidth=2,
     markersize=13,
-    fonts = (regular = "charter", bold = "charter bold", italic = "charter italic", bold_italic = "charter bold italic")
+    fonts=(regular="charter", bold="charter bold", italic="charter italic", bold_italic="charter bold italic"),
+    figure_padding=1,
 );
-fig = Figure(size = (7inch, 4inch));
+fig = Figure(size=(7inch, 5inch));
 ax = Axis(
     fig[1, 1],
-    title="Point scaling of clenshaw/forward-inplace calculating 10 recurrences",
+    title="Point scaling of clenshaw/forward-inplace with 10 recurrences",
     xlabel="Points",
     ylabel="Time [s]",
     yscale=log10,
