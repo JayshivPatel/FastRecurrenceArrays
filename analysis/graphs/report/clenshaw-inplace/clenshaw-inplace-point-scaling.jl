@@ -14,13 +14,13 @@ pt = 4 / 3;
 inch = 96;
 
 set_theme!(
-    fontsize=round(11pt),
+    fontsize=round(12pt),
     linewidth=2,
     markersize=13,
     fonts=(regular="charter", bold="charter bold", italic="charter italic", bold_italic="charter bold italic"),
     figure_padding=1,
 );
-fig = Figure(size=(7inch, 5inch));
+fig = Figure(size=(7inch, 4inch));
 ax = Axis(
     fig[1, 1],
     title="Point scaling of clenshaw/forward-inplace with 10 recurrences",

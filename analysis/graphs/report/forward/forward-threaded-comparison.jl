@@ -8,7 +8,7 @@ pt = 4 / 3;
 inch = 96;
 
 set_theme!(
-    fontsize=round(11pt),
+    fontsize=round(12pt),
     linewidth=2,
     markersize=13,
     fonts=(regular="charter", bold="charter bold", italic="charter italic", bold_italic="charter bold italic"),
@@ -18,7 +18,7 @@ set_theme!(
 fig = Figure(size=(6.27inch, 3inch), padding=0);
 ax = Axis(
     fig[1, 1],
-    title="Thread scaling of forward' calculating 10⁴ recurrences at 10⁴ points",
+    title="Thread scaling of forward' with 10⁴ recurrences at 10⁴ points",
     xlabel="Threads",
     ylabel="Time [s]",
     xticks=(2:2:8),

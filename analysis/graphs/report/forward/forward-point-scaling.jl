@@ -11,7 +11,7 @@ pt = 4 / 3;
 inch = 96;
 
 set_theme!(
-    fontsize=round(11pt),
+    fontsize=round(12pt),
     linewidth=2,
     markersize=13,
     fonts=(regular="charter", bold="charter bold", italic="charter italic", bold_italic="charter bold italic"),
@@ -21,7 +21,7 @@ set_theme!(
 fig = Figure(size=(6.27inch, 4inch));
 ax = Axis(
     fig[1, 1],
-    title="Point scaling of forward' calculating 10 recurrences",
+    title="Point scaling of forward' with 10 recurrences",
     xlabel="Points",
     ylabel="Time [s]",
     yscale=log10,
