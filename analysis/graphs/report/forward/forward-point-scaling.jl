@@ -17,7 +17,7 @@ set_theme!(
     fonts = (regular = "charter", bold = "charter bold", italic = "charter italic", bold_italic = "charter bold italic")
 );
 
-fig = Figure(size = (6inch, 4inch));
+fig = Figure(size = (6.27inch, 4inch));
 ax = Axis(
     fig[1, 1],
     title="Point scaling of forward' calculating 10 recurrences",

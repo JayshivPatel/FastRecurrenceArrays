@@ -14,7 +14,7 @@ set_theme!(
     fonts=(regular="charter", bold="charter bold", italic="charter italic", bold_italic="charter bold italic")
 );
 
-fig = Figure(size=(6inch, 3inch));
+fig = Figure(size=(6.27inch, 3inch), padding=0);
 ax = Axis(
     fig[1, 1],
     title="Thread scaling of forward' calculating 10⁴ recurrences at 10⁴ points",
