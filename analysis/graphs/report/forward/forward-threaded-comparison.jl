@@ -17,7 +17,7 @@ set_theme!(
 fig = Figure(size=(6inch, 3inch));
 ax = Axis(
     fig[1, 1],
-    title="Thread scaling of forward'calculating 10⁴ recurrences at 10⁴ points",
+    title="Thread scaling of forward' calculating 10⁴ recurrences at 10⁴ points",
     xlabel="Threads",
     ylabel="Time [s]",
     xticks=(2:2:8),

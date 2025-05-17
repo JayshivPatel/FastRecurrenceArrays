@@ -25,7 +25,7 @@ ax = Axis(
 
 c = scatterlines!(ax, threads, clenshaw);
 i = scatterlines!(ax, threads, inplace);
-axislegend(ax, [c, i], ["Clenshaw", "Forward Inplace"], position = :rt, orientation=:vertical, backgroundcolor = (:white, 0.85));
+axislegend(ax, [c, i], ["clenshaw", "forward-inplace"], position = :rt, orientation=:vertical, backgroundcolor = (:white, 0.85));
 
 fig
 
