@@ -14,13 +14,13 @@ pt = 4 / 3;
 inch = 96;
 
 set_theme!(
-    fontsize=round(12pt),
+    fontsize=round(13pt),
     linewidth=2,
     markersize=13,
     fonts=(regular="charter", bold="charter bold", italic="charter italic", bold_italic="charter bold italic"),
     figure_padding=1,
 );
-fig = Figure(size=(7inch, 4inch));
+fig = Figure(size=(6.27inch, 4.5inch));
 ax = Axis(
     fig[1, 1],
     title="Recurrence scaling of clenshaw/forward-inplace at 10 points",
@@ -48,7 +48,10 @@ Legend(
     [[f_c, g_c, c_c], [f_i, g_i, c_i]],
     [["Control", "GPU", "Threaded (8)"], ["Control", "GPU", "Threaded (8)"]],
     ["clenshaw", "forward-inplace"],
-    orientation=:horizontal
+    orientation=:horizontal,
+    framevisible=false,
+    nbanks=2,
+    groupgap=50
 )
 
 fig

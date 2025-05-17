@@ -15,7 +15,7 @@ pt = 4 / 3;
 inch = 96;
 
 set_theme!(
-    fontsize=round(12pt),
+    fontsize=round(13pt),
     linewidth=2,
     markersize=13,
     fonts = (regular = "charter", bold = "charter bold", italic = "charter italic", bold_italic = "charter bold italic"),

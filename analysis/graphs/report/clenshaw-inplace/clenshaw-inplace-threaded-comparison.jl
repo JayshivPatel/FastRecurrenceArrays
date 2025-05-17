@@ -8,14 +8,14 @@ pt = 4/3;
 inch = 96;
 
 set_theme!(
-    fontsize=round(12pt),
+    fontsize=round(13pt),
     linewidth=2,
     markersize=13,
     fonts = (regular = "charter", bold = "charter bold", italic = "charter italic", bold_italic = "charter bold italic"),
     figure_padding=1,
 );
 
-fig = Figure(size = (7inch, 3inch));
+fig = Figure(size = (7.2inch, 3inch));
 ax = Axis(
     fig[1, 1],
     title="Thread scaling of clenshaw/forward-inplace with 10⁴ recurrences at 10⁴ points",
