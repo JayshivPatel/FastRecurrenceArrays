@@ -6,13 +6,19 @@ time = [2.62114e-1, 1.44850e-1, 1.06548e-1, 1.00103e-1];
 pt = 4/3;
 inch = 96;
 
-set_theme!(theme_latexfonts(), fontsize=round(11pt), linewidth=2, markersize=13);
+set_theme!(
+    fontsize=round(11pt),
+    linewidth=2,
+    markersize=13,
+    fonts = (regular = "charter", bold = "charter bold", italic = "charter italic", bold_italic = "charter bold italic")
+);
+
 fig = Figure(size = (6inch, 3inch));
 ax = Axis(
     fig[1, 1],
-    title=L"\textbf{Worker scaling of} forward' \textbf{calculating $10^4$ recurrences at $10^4$ points}",
-    xlabel=L"\textbf{Workers}",
-    ylabel=L"\textbf{Time [s]}",
+    title="Worker scaling of forward' calculating 10⁴ recurrences at 10⁴ points",
+    xlabel="Workers",
+    ylabel="Time [s]",
     xticks=(1:4)
 );
 

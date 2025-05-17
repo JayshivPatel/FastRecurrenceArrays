@@ -7,13 +7,19 @@ inplace = [4.98700e-2, 2.59440e-2, 1.81290e-2, 1.43080e-2];
 pt = 4/3;
 inch = 96;
 
-set_theme!(theme_latexfonts(), fontsize=round(11pt));
-fig = Figure(size = (6inch, 3inch));
+set_theme!(
+    fontsize=round(11pt),
+    linewidth=2,
+    markersize=13,
+    fonts = (regular = "charter", bold = "charter bold", italic = "charter italic", bold_italic = "charter bold italic")
+);
+
+fig = Figure(size = (7inch, 3inch));
 ax = Axis(
     fig[1, 1],
-    title=L"\textbf{Thread scaling of} clenshaw/forward-inplace \textbf{calculating $10^4$ recurrences at $10^4$ points}",
-    xlabel=L"\textbf{Threads}",
-    ylabel=L"\textbf{Time [s]}",
+    title="Thread scaling of clenshaw/forward-inplace calculating 10⁴ recurrences at 10⁴ points",
+    xlabel="Threads",
+    ylabel="Time [s]",
     xticks=(2:2:8)
 );
 

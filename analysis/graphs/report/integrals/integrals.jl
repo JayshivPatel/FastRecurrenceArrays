@@ -14,13 +14,20 @@ table = (
 pt = 4 / 3;
 inch = 96;
 
-set_theme!(theme_latexfonts(), fontsize=round(11pt));
+set_theme!(
+    fontsize=round(11pt),
+    linewidth=2,
+    markersize=13,
+    fonts = (regular = "charter", bold = "charter bold", italic = "charter italic", bold_italic = "charter bold italic")
+);
+
 fig = Figure(size=(6inch, 3inch));
 ax = Axis(
     fig[1, 1],
-    title=L"\textbf{Singular integral computation time by method}",
+    title="Singular integral computation time by method",
     xlabel="Time [s]",
     yticks=(1:4, ["Forward Inplace", "Forward", "FastGaussQuadrature.jl", "SingularIntegrals.jl",]),
+    xscale=log10,
 );
 
 c1 = Makie.wong_colors()[2];

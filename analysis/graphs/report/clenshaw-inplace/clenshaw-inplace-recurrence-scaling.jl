@@ -10,16 +10,21 @@ fixed_i = [1.43681e-7, 9.55452e-7, 9.72100e-6, 9.91440e-5];
 gpu_i = [1.11700e-3, 5.27100e-3, 5.42410e-2, 5.67042e-1];
 column_i = [3.72600e-6, 3.63000e-6, 4.64900e-6, 2.30490e-5];
 
-pt = 4/3;
+pt = 4 / 3;
 inch = 96;
 
-set_theme!(theme_latexfonts(), fontsize=round(11pt), linewidth=2, markersize=13);
-fig = Figure(size = (7inch, 5inch));
+set_theme!(
+    fontsize=round(11pt),
+    linewidth=2,
+    markersize=13,
+    fonts=(regular="charter", bold="charter bold", italic="charter italic", bold_italic="charter bold italic")
+);
+fig = Figure(size=(7inch, 4inch));
 ax = Axis(
     fig[1, 1],
-    title=L"\textbf{Recurrence scaling of } clenshaw/forward-inplace \textbf{ at $10$ points}",
-    xlabel=L"\textbf{Recurrences}",
-    ylabel=L"\textbf{Time [s]}",
+    title="Recurrence scaling of clenshaw/forward-inplace at 10 points",
+    xlabel="Recurrences",
+    ylabel="Time [s]",
     yscale=log10,
     xscale=log10,
     limits=(nothing, (1e-9, 1))

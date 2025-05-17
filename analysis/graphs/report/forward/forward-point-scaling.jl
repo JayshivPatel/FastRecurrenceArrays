@@ -10,13 +10,19 @@ distributed = [1.47810e-2, 1.10820e-2, 1.28140e-2, 7.80100e-3, 1.02930e-2, 3.733
 pt = 4/3;
 inch = 96;
 
-set_theme!(theme_latexfonts(), fontsize=round(11pt), linewidth=2, markersize=13);
-fig = Figure(size = (6inch, 5inch));
+set_theme!(
+    fontsize=round(11pt),
+    linewidth=2,
+    markersize=13,
+    fonts = (regular = "charter", bold = "charter bold", italic = "charter italic", bold_italic = "charter bold italic")
+);
+
+fig = Figure(size = (6inch, 4inch));
 ax = Axis(
     fig[1, 1],
-    title=L"\textbf{Point scaling of } forward' \textbf{ calculating 10 recurrences}",
-    xlabel=L"\textbf{Points}",
-    ylabel=L"\textbf{Time [s]}",
+    title="Point scaling of forward' calculating 10 recurrences",
+    xlabel="Points}",
+    ylabel="Time [s]",
     yscale=log10,
     xscale=log10
 );

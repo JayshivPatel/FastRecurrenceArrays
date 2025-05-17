@@ -13,13 +13,18 @@ column_i = [3.72600e-6, 3.85100e-6, 7.70500e-6, 3.02270e-5, 4.50289e-4, 4.79400e
 pt = 4/3;
 inch = 96;
 
-set_theme!(theme_latexfonts(), fontsize=round(11pt), linewidth=2, markersize=13);
-fig = Figure(size = (7inch, 5inch));
+set_theme!(
+    fontsize=round(11pt),
+    linewidth=2,
+    markersize=13,
+    fonts = (regular = "charter", bold = "charter bold", italic = "charter italic", bold_italic = "charter bold italic")
+);
+fig = Figure(size = (7inch, 4inch));
 ax = Axis(
     fig[1, 1],
-    title=L"\textbf{Point scaling of } clenshaw/forward-inplace \textbf{calculating $10$ recurrences}",
-    xlabel=L"\textbf{Points}",
-    ylabel=L"\textbf{Time [s]}",
+    title="Point scaling of clenshaw/forward-inplace calculating 10 recurrences",
+    xlabel="Points",
+    ylabel="Time [s]",
     yscale=log10,
     xscale=log10,
 );
@@ -42,6 +47,6 @@ Legend(
     [["Control", "GPU", "Threaded (8)"], ["Control", "GPU", "Threaded (8)"]],
     ["clenshaw", "forward-inplace"],
     orientation=:horizontal
-)
+);
 
 save("clenshaw-inplace-point-scaling.svg", fig)
