@@ -5,7 +5,8 @@ x = range(ComplexF32(-10.0), ComplexF32(10.0), 1000);
 
 f_g(x, z) = log(z-x)*exp(x);
 
-P = Legendre(); rec_P = ClassicalOrthogonalPolynomials.recurrencecoefficients(P); f_N = expand(P, exp);
+P = Legendre();
+f_N = expand(P, exp);
 
 function logtransform(n)
     fixed = Vector{Float32}(undef, length(x));

@@ -15,10 +15,10 @@ set_theme!(
     figure_padding=1,
 );
 
-fig = Figure(size = (7.2inch, 3inch));
+fig = Figure(size = (6.2inch, 3inch));
 ax = Axis(
     fig[1, 1],
-    title="Thread scaling of clenshaw/forward-inplace with 10⁴ recurrences at 10⁴ points",
+    title="Thread scaling of clenshaw/forward-inplace with\n10⁴ recurrences at 10⁴ points",
     xlabel="Threads",
     ylabel="Time [s]",
     xticks=(2:2:8)
