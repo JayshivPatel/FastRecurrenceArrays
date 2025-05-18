@@ -2,7 +2,7 @@
 
 import ClassicalOrthogonalPolynomials: chebyshevu, expand, Legendre
 import CUDA: has_cuda, has_cuda_gpu
-import FastRecurrenceArrays: GPURecurrenceArray, GPUClenshaw, GPUInplace, GPUInplaceStieltjes, GPUInplaceLogKernel
+import FastRecurrenceArrays: GPURecurrenceArray, GPUClenshaw, GPUInplace, GPUInplaceCauchy, GPUInplaceLogKernel
 import LinearAlgebra: dot
 import RecurrenceRelationships: clenshaw
 import RecurrenceRelationshipArrays: RecurrenceArray
@@ -44,9 +44,9 @@ import Test: @test, @testset
     P = Legendre(); f = expand(P, exp); ff = Float32.(collect(f.args[2][1:N-2]));
 
     @testset "Integrals" begin
-        @testset "Stieltjes" begin
-            # GPU forward inplace (stieltjes)
-            @test inv.(x[1] .- axes(P, 1)') * f ≈ Array(GPUInplaceStieltjes(N, [x[1]], ff))[1]
+        @testset "Cauchy" begin
+            # GPU forward inplace (cauchy)
+            @test -inv(2π*im) * (inv.(x[1] .- axes(P, 1)') * f) ≈ Array(GPUInplaceCauchy(N, [x[1]], ff))[1]
         end
         @testset "LogKernel" begin
             # GPU forward inplace (logkernel)

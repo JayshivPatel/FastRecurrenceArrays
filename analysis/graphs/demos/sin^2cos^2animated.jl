@@ -14,14 +14,14 @@ cuda = CUDA.has_cuda() && CUDA.has_cuda_gpu();
 
 P = Legendre();
 
-function stieltjestransform(k)
+function cauchytransform(k)
     f = expand(P, x -> (sin(x + k)^2 * cos(x + k)^2)); 
     ff = collect(f.args[2][1:N-2]);
 
     if cuda
-        st = real(Array(GPUInplaceStieltjes(N, mesh, ff)));
+        st = real(Array(GPUInplaceCauchy(N, mesh, ff)));
     else
-        st = real(InplaceStieltjes(N, mesh, ff));
+        st = real(InplaceCauchy(N, mesh, ff));
     end
 
     return reshape(st, side_length, side_length);
@@ -45,7 +45,7 @@ fig = Figure(size = (1500, 1000));
 
 k = Observable(0.0)
 
-st = @lift stieltjestransform($k);
+st = @lift cauchytransform($k);
 lt = @lift logtransform($k);
 
 ax1 = Axis(fig[2, 2], xlabel=L"Re(z)", ylabel=L"Im(z)");

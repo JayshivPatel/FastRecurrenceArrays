@@ -3,30 +3,30 @@ import ClassicalOrthogonalPolynomials: Legendre, OrthogonalPolynomial, Ultrasphe
 import LinearAlgebra: dot
 import SingularIntegrals: stieltjes
 
-export FixedStieltjes, InplaceStieltjes, ThreadedInplaceStieltjes, GPUInplaceStieltjes,
+export FixedCauchy, InplaceCauchy, ThreadedInplaceCauchy, GPUInplaceCauchy,
     FixedLogKernel, InplaceLogKernel, ThreadedInplaceLogKernel, GPUInplaceLogKernel
 
 # Forward
 
-function FixedStieltjes(n::Integer, x::AbstractVector, f::AbstractVector)
-    rec_P, input_data = stieltjes_init(n, x)
+function FixedCauchy(n::Integer, x::AbstractVector, f::AbstractVector)
+    rec_P, input_data = cauchy_init(n, x)
     return transpose(FixedRecurrenceArray(x, rec_P, n, input_data)) * f
 end
 
 # Inplace
 
-function InplaceStieltjes(n::Integer, x::AbstractVector, f::AbstractVector)
-    rec_P, input_data = stieltjes_init(n, x)
+function InplaceCauchy(n::Integer, x::AbstractVector, f::AbstractVector)
+    rec_P, input_data = cauchy_init(n, x)
     return ForwardInplace(f, rec_P, x, input_data)
 end
 
-function ThreadedInplaceStieltjes(n::Integer, x::AbstractVector, f::AbstractVector)
-    rec_P, input_data = stieltjes_init(n, x)
+function ThreadedInplaceCauchy(n::Integer, x::AbstractVector, f::AbstractVector)
+    rec_P, input_data = cauchy_init(n, x)
     return ThreadedInplace(f, rec_P, x, input_data)
 end
 
-function GPUInplaceStieltjes(n::Integer, x::AbstractVector, f::AbstractVector)
-    (A, B, C), input_data = stieltjes_init(n, x)
+function GPUInplaceCauchy(n::Integer, x::AbstractVector, f::AbstractVector)
+    (A, B, C), input_data = cauchy_init(n, x)
     
     # enforce Float32 recurrence coefficients on the GPU
     A, B, C = Float32.(A), Float32.(B), Float32.(C)
@@ -60,7 +60,7 @@ function GPUInplaceLogKernel(n::Integer, x::AbstractVector, f::AbstractVector)
     return real.(GPUInplace(f, (A, B, C), x, input_data))
 end
 
-function stieltjes_init(n::Integer, x::AbstractVector)
+function cauchy_init(n::Integer, x::AbstractVector)
     T = eltype(x)
     P = Legendre()
 
@@ -70,8 +70,8 @@ function stieltjes_init(n::Integer, x::AbstractVector)
 
     data = Matrix{T}(undef, 2, length(x))
 
-    data[1, :] .= stieltjes(w, x) .* _p0(P)
-    data[2, :] .= (A[1] .* x .+ B[1]) .* data[1, :] .- (A[1]sum(w) * _p0(P))
+    data[1, :] .= inv(2π*im) * -stieltjes(w, x) .* _p0(P)
+    data[2, :] .= (A[1] .* x .+ B[1]) .* data[1, :] .+ (inv(2π*im) * A[1]sum(w) * _p0(P))
     
     return (A, B, C), data
 end

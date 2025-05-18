@@ -1,7 +1,7 @@
 # Basic unit tests
 
 import ClassicalOrthogonalPolynomials: Legendre, expand
-import FastRecurrenceArrays: FixedStieltjes, InplaceStieltjes, FixedLogKernel, InplaceLogKernel
+import FastRecurrenceArrays: FixedCauchy, InplaceCauchy, FixedLogKernel, InplaceLogKernel
 import RecurrenceRelationships: clenshaw
 import RecurrenceRelationshipArrays: RecurrenceArray
 import Test: @test, @testset
@@ -11,11 +11,11 @@ import Test: @test, @testset
     N = 15;
     P = Legendre(); f = expand(P, exp); ff = collect(f.args[2][1:N]);
 
-    @testset "Stieltjes" begin
-        # Forward recurrence (stieltjes)
-        @test inv.(x[1] .- axes(P, 1)') * f ≈ FixedStieltjes(N, x, ff)[1];
-        # Forward inplace (stieltjes)
-        @test inv.(x[1] .- axes(P, 1)') * f ≈ InplaceStieltjes(N, x, ff)[1];
+    @testset "Cauchy" begin
+        # Forward recurrence (cauchy)
+        @test -inv(2π*im) * (inv.(x[1] .- axes(P, 1)') * f) ≈ FixedCauchy(N, x, ff)[1];
+        # Forward inplace (cauchy)
+        @test -inv(2π*im) * (inv.(x[1] .- axes(P, 1)') * f) ≈ InplaceCauchy(N, x, ff)[1];
     end
 
     @testset "LogKernel" begin

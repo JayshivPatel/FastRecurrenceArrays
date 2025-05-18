@@ -46,7 +46,7 @@ b = barplot!(
 legend = Legend(
     fig[1, 2],
     [PolyElement(color=c2), PolyElement(color=c1)],
-    ["Stieltjes", "LogKernel"],
+    ["Cauchy", "LogKernel"],
     orientation=:vertical,
 );
 
