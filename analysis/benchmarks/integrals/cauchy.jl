@@ -1,18 +1,19 @@
-using FastRecurrenceArrays, RecurrenceRelationshipArrays, SingularIntegrals, 
+using FastRecurrenceArrays, RecurrenceRelationshipArrays, SingularIntegrals,
     ClassicalOrthogonalPolynomials, LinearAlgebra, FastGaussQuadrature, BenchmarkTools;
 
 x = range(ComplexF32(-10.0), ComplexF32(10.0), 100_000);
 
-f_g(x, z) = exp(x)/(z-x);
+f_g(x, z) = exp(x) / (z - x);
 
-P = Legendre(); f_N = expand(P, exp);
+P = Legendre();
+f_N = expand(P, exp);
 
 println("Cauchy Transform Baseline");
 println(median(run(
-    @benchmarkable collect($(-inv(2π*im)) * (inv.($x .- $axes(P, 1)') * $f_N)) samples = 100 seconds = 500
+    @benchmarkable collect($(-inv(2π * im)) * (inv.($x .- $axes(P, 1)') * $f_N)) samples = 100 seconds = 500
 )));
 
-n = 100;
+n = 1_000;
 
 ff = Float32.(collect(f_N.args[2][1:n]));
 println("Cauchy Transform FixedCauchy");
@@ -41,5 +42,5 @@ println(median(run(
 x_g, w_g = gausslegendre(n);
 println("Cauchy Transform FastGaussQuadrature");
 println(median(run(
-    @benchmarkable [$(inv(2π*im)) * dot($w_g, f_g.($x_g, x₀)) for x₀ in $x] samples = 100 seconds = 500
+    @benchmarkable [$(inv(2π * im)) * dot($w_g, f_g.($x_g, x₀)) for x₀ in $x] samples = 100 seconds = 500
 )));

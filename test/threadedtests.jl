@@ -32,17 +32,36 @@ import Test: @test, @testset
     end
 
     @testset "Clenshaw" begin
-        # clenshaw (columnwise)
-        @test ThreadedClenshaw(inv.(1:N), rec_U, x) ≈ clenshaw(inv.(1:N), rec_U..., x);
+        # clenshaw (rowwise) - no data
+        @test ThreadedClenshaw(inv.(1:N), rec_U, x, Val(1)) ≈ clenshaw(inv.(1:N), rec_U..., x);
+
+        # clenshaw (columnwise) - no data
+        @test ThreadedClenshaw(inv.(1:N), rec_U, x, Val(2)) ≈ clenshaw(inv.(1:N), rec_U..., x);
+
+        # clenshaw (rowwise) - data
+        @test ThreadedClenshaw(inv.(1:N), rec_U, [x[1]], [x[2]], [x[3]], Val(1))[1] ≈ 
+            (collect(inv.(1:N))' * RecurrenceArray(x[1], rec_U, x[2:3])[1:N]);
+
+        # clenshaw (columnwise) - data
+        @test ThreadedClenshaw(inv.(1:N), rec_U, [x[1]], [x[2]], [x[3]], Val(2))[1] ≈ 
+            (collect(inv.(1:N))' * RecurrenceArray(x[1], rec_U, x[2:3])[1:N]);
     end
 
     @testset "Inplace" begin   
-        # forward-inplace - no data
-        @test ThreadedInplace(inv.(1:N), rec_U, x) ≈ clenshaw(inv.(1:N), rec_U..., x);
+        # forward-inplace (rowwise) - no data
+        @test ThreadedInplace(inv.(1:N), rec_U, x, Val(1)) ≈ clenshaw(inv.(1:N), rec_U..., x);
 
-        # forward-inplace - data
+        # forward-inplace (columnwise) - no data
+        @test ThreadedInplace(inv.(1:N), rec_U, x,  Val(2)) ≈ clenshaw(inv.(1:N), rec_U..., x);
+
+        # forward-inplace (rowwise) - data
         ξ = @. inv(x + sign(x)sqrt(x^2-1));
-        @test ThreadedInplace(inv.(1:N), rec_U, x, [ξ'; ξ'.^2])[1] ≈ 
+        @test ThreadedInplace(inv.(1:N), rec_U, x, [ξ'; ξ'.^2], Val(1))[1] ≈ 
+            dot(inv.(1:N), RecurrenceArray(x, rec_U, [ξ'; ξ'.^2])[1:N, 1]);
+
+        # forward-inplace (columnwise) - data
+        ξ = @. inv(x + sign(x)sqrt(x^2-1));
+        @test ThreadedInplace(inv.(1:N), rec_U, x, [ξ'; ξ'.^2], Val(2))[1] ≈ 
             dot(inv.(1:N), RecurrenceArray(x, rec_U, [ξ'; ξ'.^2])[1:N, 1]);
     end
 end

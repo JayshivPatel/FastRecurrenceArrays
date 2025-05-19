@@ -10,11 +10,17 @@ ForwardInplace(c::AbstractVector, (A, B, C), x::AbstractVector) =
 ForwardInplace(c::AbstractVector, (A, B, C), x::AbstractVector, input_data::AbstractMatrix{T}) where T =
     _ForwardInplace(c, (A, B, C), x, input_data)
 
-ThreadedInplace(c::AbstractVector, (A, B, C), x::AbstractVector) =
-    _ForwardInplace(c, (A, B, C), x, Base.zeros(eltype(x), 1, length(x)), threaded_inplace!)
+ThreadedInplace(c::AbstractVector, (A, B, C), x::AbstractVector, dims::Val{1}) =
+    _ForwardInplace(c, (A, B, C), x, Base.zeros(eltype(x), 1, length(x)), rowthreadedinplace!)
 
-ThreadedInplace(c::AbstractVector, (A, B, C), x::AbstractVector, input_data::AbstractMatrix{T}) where T =
-    _ForwardInplace(c, (A, B, C), x, input_data, threaded_inplace!)
+ThreadedInplace(c::AbstractVector, (A, B, C), x::AbstractVector, input_data::AbstractMatrix{T}, dims::Val{1}) where T =
+    _ForwardInplace(c, (A, B, C), x, input_data, rowthreadedinplace!)
+
+ThreadedInplace(c::AbstractVector, (A, B, C), x::AbstractVector, dims::Val{2}) =
+    _ForwardInplace(c, (A, B, C), x, Base.zeros(eltype(x), 1, length(x)), columnthreadedinplace!)
+
+ThreadedInplace(c::AbstractVector, (A, B, C), x::AbstractVector, input_data::AbstractMatrix{T}, dims::Val{2}) where T =
+    _ForwardInplace(c, (A, B, C), x, input_data, columnthreadedinplace!)
 
 GPUInplace(c::AbstractVector, (A, B, C), x::AbstractVector) =
     _GPUInplace(c, (A, B, C), x, Base.zeros(eltype(x), 1, length(x)))
@@ -106,18 +112,31 @@ function _GPUInplace(c::AbstractVector, (A, B, C), x::AbstractVector, input_data
     return gpu_f
 end
 
-
-# serial population
-
 function forwardvec_inplace!(start_index::Integer, f::AbstractVector, x::AbstractVector, c::AbstractVector, (A, B, C), p0::AbstractVector, p1::AbstractVector)
     @inbounds for j in axes(x, 1)
         f[j] += forward_inplace(start_index, c, (A, B, C), x[j], p0[j], p1[j])
     end
 end
 
-# threaded population (column)
+function rowthreadedinplace!(start_index::Integer, f::AbstractVector, x::AbstractVector, c::AbstractVector, (A, B, C), p0::AbstractVector, p1::AbstractVector)
+    num_coeffs = length(c)
+    num_points = length(x)
+    
+    next = Vector{eltype(x)}(undef, num_points)
+    
+    @inbounds for n = start_index:num_coeffs-1
+        Threads.@threads for j in axes(x, 1)
+            next[j] = (A[n] * x[j] + B[n]) * p1[j] - C[n] * p0[j]
+        end
 
-function threaded_inplace!(start_index::Integer, f::AbstractVector, x::AbstractVector, c::AbstractVector, (A, B, C), p0::AbstractVector, p1::AbstractVector)
+        @. p0 = p1
+        @. p1 = next
+
+        @. f += (c[n+1] * p1)
+    end
+end
+
+function columnthreadedinplace!(start_index::Integer, f::AbstractVector, x::AbstractVector, c::AbstractVector, (A, B, C), p0::AbstractVector, p1::AbstractVector)
     @inbounds Threads.@threads for j in axes(x, 1)
         f[j] += forward_inplace(start_index, c, (A, B, C), x[j], p0[j], p1[j])
     end
@@ -125,12 +144,12 @@ end
 
 function forward_inplace(start_index::Integer, c::AbstractVector, (A, B, C), x::Number, p0, p1)
     num_coeffs = length(c)
-    fₓ = zero(typeof(x))
+    f = zero(typeof(x))
 
     @inbounds for i in start_index:num_coeffs-1
         p1, p0 = muladd(muladd(A[i], x, B[i]), p1, -C[i] * p0), p1
-        fₓ += p1 * c[i+1]
+        f += p1 * c[i+1]
     end
 
-    return fₓ
+    return f
 end

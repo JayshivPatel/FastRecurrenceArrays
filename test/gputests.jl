@@ -27,8 +27,12 @@ import Test: @test, @testset
     end
 
     @testset "Clenshaw" begin
-        # GPU clenshaw
+        # GPU clenshaw - data
         @test Array(GPUClenshaw(Float32.(inv.(1:N)), rec_U, x)) ≈ clenshaw(Float32.(inv.(1:N)), rec_U..., x)
+
+        # GPU clenshaw - data
+        @test Array(GPUClenshaw(Float32.(inv.(1:N)), rec_U, [x[1]], [x[2]], [x[3]]))[1] ≈ 
+            (collect(inv.(1:N))' * RecurrenceArray(x[1], rec_U, x[2:3])[1:N]);
     end
 
     @testset "Inplace" begin   
