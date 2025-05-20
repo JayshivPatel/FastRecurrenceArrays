@@ -50,7 +50,7 @@ import Test: @test, @testset
     @testset "Integrals" begin
         @testset "Cauchy" begin
             # GPU forward inplace (cauchy)
-            @test -inv(2π*im) * (inv.(x[1] .- axes(P, 1)') * f) ≈ Array(GPUInplaceCauchy(N, [x[1]], ff))[1]
+            @test (inv.(x[1] .- axes(P, 1)') * f) ≈ Array(GPUInplaceCauchy(N, [x[1]], ff))[1]
         end
         @testset "LogKernel" begin
             # GPU forward inplace (logkernel)

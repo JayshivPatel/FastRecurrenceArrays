@@ -1,53 +1,50 @@
-import Base: copy, size, show, string, getindex
-import CUDA
-import Distributed: workers, map, fetch
-import DistributedData: save_at, get_val_from
+# public
 
-import RecurrenceRelationships: forwardrecurrence_partial!, forwardrecurrence_next
-
-export FixedRecurrenceArray, ThreadedRecurrenceArray, PartitionedRecurrenceArray,
-    GPURecurrenceArray
-
-# constructors
-
-FixedRecurrenceArray(z::AbstractVector, (A, B, C), n::Integer) = 
+FixedRecurrenceArray(z::AbstractVector, (A, B, C), n::Integer) =
     Forward(z, (A, B, C), n, Base.zeros(eltype(z), 1, length(z)))
 
-FixedRecurrenceArray(z::AbstractVector, (A, B, C), n::Integer, input_data::AbstractMatrix{T}) where T = 
+FixedRecurrenceArray(z::AbstractVector, (A, B, C), n::Integer, input_data::AbstractMatrix{T}) where T =
     Forward(z, (A, B, C), n, input_data)
 
-ThreadedRecurrenceArray(z::AbstractVector, (A, B, C), n::Integer, dims::Val{1}) = 
+ThreadedRecurrenceArray(z::AbstractVector, (A, B, C), n::Integer, dims::Val{1}) =
     ForwardTransposed(z, (A, B, C), n, Base.zeros(eltype(z), 1, length(z)), rowthreadedrecurrence!)
 
-ThreadedRecurrenceArray(z::AbstractVector, (A, B, C), n::Integer, input_data::AbstractMatrix{T}, dims::Val{1}) where T = 
+ThreadedRecurrenceArray(z::AbstractVector, (A, B, C), n::Integer, input_data::AbstractMatrix{T}, dims::Val{1}) where T =
     ForwardTransposed(z, (A, B, C), n, input_data, rowthreadedrecurrence!)
 
-ThreadedRecurrenceArray(z::AbstractVector, (A, B, C), n::Integer, dims::Val{2}) = 
+ThreadedRecurrenceArray(z::AbstractVector, (A, B, C), n::Integer, dims::Val{2}) =
     Forward(z, (A, B, C), n, Base.zeros(eltype(z), 1, length(z)), columnthreadedrecurrence!)
 
-ThreadedRecurrenceArray(z::AbstractVector, (A, B, C), n::Integer, input_data::AbstractMatrix{T}, dims::Val{2}) where T = 
+ThreadedRecurrenceArray(z::AbstractVector, (A, B, C), n::Integer, input_data::AbstractMatrix{T}, dims::Val{2}) where T =
     Forward(z, (A, B, C), n, input_data, columnthreadedrecurrence!)
 
-GPURecurrenceArray(z::AbstractVector, (A, B, C), n::Integer) = 
+GPURecurrenceArray(z::AbstractVector, (A, B, C), n::Integer) =
     GPUForward(z, (A, B, C), n, Base.zeros(eltype(z), 1, length(z)))
 
-GPURecurrenceArray(z::AbstractVector, (A, B, C), n::Integer, input_data::AbstractMatrix{T}) where T = 
+GPURecurrenceArray(z::AbstractVector, (A, B, C), n::Integer, input_data::AbstractMatrix{T}) where T =
     GPUForward(z, (A, B, C), n, input_data)
 
-PartitionedRecurrenceArray(z::AbstractVector, (A, B, C), n::Integer) = 
+PartitionedRecurrenceArray(z::AbstractVector, (A, B, C), n::Integer) =
     PartitionedForward(z, (A, B, C), n, Base.zeros(eltype(z), 1, length(z)))
 
-PartitionedRecurrenceArray(z::AbstractVector, (A, B, C), n::Integer, input_data::AbstractMatrix{T}) where T = 
+PartitionedRecurrenceArray(z::AbstractVector, (A, B, C), n::Integer, input_data::AbstractMatrix{T}) where T =
     PartitionedForward(z, (A, B, C), n, input_data)
 
-function Forward(z::AbstractVector, (A, B, C), n::Integer,
-    input_data::AbstractMatrix{T}, populate!::Function=defaultforwardrecurrence!) where T
+mutable struct PartitionedArray
+    type::Type # type of remotely stored data
+    workers::Vector # list of workers 
+    partitions::Vector  # list of indexes partitioned on workers
+    N::Integer # number of recurrences
+    M::Integer # number of points
+end
 
+# protected
+
+function Forward(z::AbstractVector, (A, B, C), n::Integer, input_data::AbstractMatrix{T}, populate!::Function=defaultforwardrecurrence!) where T
     @assert n >= 2
 
     N, M = size(input_data)
 
-    # allocate a fixed size output matrix
     output_data = similar(input_data, n, M)
 
     if N < 2
@@ -55,21 +52,16 @@ function Forward(z::AbstractVector, (A, B, C), n::Integer,
         @. output_data[2, :] = (A[1] * z + B[1]) * Base.one(T)
         N = 2
     else
-        # copy the initial data to the output
         output_data[axes(input_data)...] = input_data
     end
 
-    # calculate and populate recurrence
     populate!(N, output_data, z, (A, B, C), n)
 
     return output_data
 end
 
-# Transpose the working layout to better suit the column-wise array access in Julia
-
-function ForwardTransposed(z::AbstractVector, (A, B, C), n::Integer,
-    input_data::AbstractMatrix{T}, populate!::Function=rowthreadedrecurrence!) where T
-
+# transpose the working layout to better suit the column-wise array access in Julia
+function ForwardTransposed(z::AbstractVector, (A, B, C), n::Integer, input_data::AbstractMatrix{T}, populate!::Function=rowthreadedrecurrence!) where T
     @assert n >= 2
 
     N, M = size(input_data)
@@ -91,7 +83,6 @@ function ForwardTransposed(z::AbstractVector, (A, B, C), n::Integer,
 end
 
 function GPUForward(z::AbstractVector, (A, B, C), n::Integer, input_data::AbstractMatrix{RawT}) where RawT
-
     # enforce Float32/ComplexF32
     z = checkandconvert(z)
     A = checkandconvert(A)
@@ -119,13 +110,12 @@ function GPUForward(z::AbstractVector, (A, B, C), n::Integer, input_data::Abstra
         gpu_output_data[axes(gpu_input_data)...] = gpu_input_data
     end
 
-    # initialise views for forward computation
-    gpu_p0 = view(gpu_output_data, :, N-1)
+    # initialise views to avoid making copies on the gpu
+    gpu_p0 = view(gpu_output_data, :, N - 1)
     gpu_p1 = view(gpu_output_data, :, N)
-    
-    # populate result
+
     @inbounds for i = N:n-1
-        gpu_next = view(gpu_output_data, :, i+1)
+        gpu_next = view(gpu_output_data, :, i + 1)
         gpu_next .= (view(gpu_A, i) .* gpu_z .+ view(gpu_B, i)) .* gpu_p1 .- view(gpu_C, i) .* gpu_p0
 
         gpu_p0, gpu_p1 = gpu_p1, gpu_next
@@ -134,69 +124,23 @@ function GPUForward(z::AbstractVector, (A, B, C), n::Integer, input_data::Abstra
     return transpose(gpu_output_data)
 end
 
-# Float32/ComplexF32 helper function
 
+# Float32/ComplexF32 helper function
 function checkandconvert(x)
     T = eltype(x)
     if T <: Complex
         if T != ComplexF32
-            @warn "Converting input vector(s) to ComplexF32 for improved performance..." x=x maxlog=1
+            @warn "Converting input vector(s) to ComplexF32 for improved performance..." x = x maxlog = 1
             return ComplexF32.(x)
         end
     elseif T != Float32
-        @warn "Converting input vector(s) to Float32 for improved performance..." x=x maxlog=1
+        @warn "Converting input vector(s) to Float32 for improved performance..." x = x maxlog = 1
         return Float32.(x)
     end
     return x
 end
 
-# default serial population
-
-function defaultforwardrecurrence!(start_index::Integer, output_data::Array{T,N},
-    z::AbstractVector, (A, B, C), n::Integer) where {T,N}
-
-    @inbounds for j = axes(z, 1)
-        forwardrecurrence_partial!(view(output_data, :, j), A, B, C, z[j], start_index:n)
-    end
-end
-
-# column-wise threaded population
-
-function columnthreadedrecurrence!(start_index::Integer, output_data::Array{T,N},
-    z::AbstractVector, (A, B, C), n::Integer) where {T,N}
-
-    @inbounds Threads.@threads for j in axes(z, 1)
-        forwardrecurrence_partial!(view(output_data, :, j), A, B, C, z[j], start_index:n)
-    end
-end
-
-# row-wise threaded population
-
-function rowthreadedrecurrence!(start_index::Integer, output_data::Array{T,N},
-    z::AbstractVector, (A, B, C), n::Integer) where {T,N}
-
-    @inbounds for i in start_index:n-1
-        Threads.@threads for j in axes(z, 1)
-            output_data[j, i+1] =
-                forwardrecurrence_next(i, A, B, C, z[j], output_data[j, i-1], output_data[j, i])
-        end
-    end
-end
-
-# struct
-
-mutable struct PartitionedArray
-    type::Type # type of remotely stored data
-    workers::Vector # list of workers 
-    partitions::Vector  # list of indexes partitioned on workers
-    N::Integer # number of recurrences
-    M::Integer # number of points
-end
-
-
-function PartitionedForward(z::AbstractVector, (A, B, C), n::Integer,
-    input_data::AbstractMatrix{T}, workers::Vector=workers()) where T
-
+function PartitionedForward(z::AbstractVector, (A, B, C), n::Integer, input_data::AbstractMatrix{T}, workers::Vector=workers()) where T
     @assert n >= 2
 
     M = length(z)
@@ -249,12 +193,12 @@ function PartitionedForward(z::AbstractVector, (A, B, C), n::Integer,
     return PartitionedArray(T, workers, partitions, n, M)
 end
 
-# properties and access
+# partitioned properties and access
 
 size(K::PartitionedArray) = (K.N, K.M)
 copy(K::PartitionedArray) = K
 
-# display
+# partitioned display (hidden)
 
 function show(io::IO, ::MIME"text/plain", K::PartitionedArray)
     s = size(K)
@@ -265,10 +209,9 @@ function show(io::IO, ::MIME"text/plain", K::PartitionedArray)
     )
 end
 
-# partitioned indexing
+# partitioned indexing (lazy)
 
 function getindex(K::PartitionedArray, i, j)
-
     i, j = (convert_to_range(i, K.N), convert_to_range(j, K.M))
 
     workers, local_ranges = global_to_local(K, j)
@@ -324,6 +267,27 @@ function convert_to_range(input::Number, limit)
     return input:input
 end
 
-function convert_to_range(_::Colon, limit)
-    return 1:limit
+convert_to_range(_::Colon, limit) = 1:limit
+
+# population
+
+function defaultforwardrecurrence!(start_index::Integer, output_data::Array{T,N}, z::AbstractVector, (A, B, C), n::Integer) where {T,N}
+    @inbounds for j = axes(z, 1)
+        forwardrecurrence_partial!(view(output_data, :, j), A, B, C, z[j], start_index:n)
+    end
+end
+
+function columnthreadedrecurrence!(start_index::Integer, output_data::Array{T,N}, z::AbstractVector, (A, B, C), n::Integer) where {T,N}
+    @inbounds Threads.@threads for j in axes(z, 1)
+        forwardrecurrence_partial!(view(output_data, :, j), A, B, C, z[j], start_index:n)
+    end
+end
+
+function rowthreadedrecurrence!(start_index::Integer, output_data::Array{T,N}, z::AbstractVector, (A, B, C), n::Integer) where {T,N}
+    @inbounds for i in start_index:n-1
+        Threads.@threads for j in axes(z, 1)
+            output_data[j, i+1] =
+                forwardrecurrence_next(i, A, B, C, z[j], output_data[j, i-1], output_data[j, i])
+        end
+    end
 end

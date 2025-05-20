@@ -1,8 +1,4 @@
-import LinearAlgebra: dot
-
-export ForwardInplace, ThreadedInplace, GPUInplace
-
-# constructors
+# public
 
 ForwardInplace(c::AbstractVector, (A, B, C), x::AbstractVector) =
     _ForwardInplace(c, (A, B, C), x, Base.zeros(eltype(x), 1, length(x)))
@@ -28,10 +24,9 @@ GPUInplace(c::AbstractVector, (A, B, C), x::AbstractVector) =
 GPUInplace(c::AbstractVector, (A, B, C), x::AbstractVector, input_data::AbstractMatrix{T}) where T =
     _GPUInplace(c, (A, B, C), x, input_data)
 
+# protected
 
-function _ForwardInplace(c::AbstractVector, (A, B, C), x::AbstractVector,
-    input_data::AbstractMatrix{T}, populate!::Function=forwardvec_inplace!) where T
-
+function _ForwardInplace(c::AbstractVector, (A, B, C), x::AbstractVector, input_data::AbstractMatrix{T}, populate!::Function=forwardvec_inplace!) where T
     num_coeffs = length(c)
     num_points = length(x)
 
@@ -55,14 +50,12 @@ function _ForwardInplace(c::AbstractVector, (A, B, C), x::AbstractVector,
         f = sum(view(input_data, i, :) * c[i] for i in 1:N)
     end
 
-    # calculate and populate f using forward_inplace
     populate!(N, f, x, c, (A, B, C), p0, p1)
 
     return f
 end
 
 function _GPUInplace(c::AbstractVector, (A, B, C), x::AbstractVector, input_data::AbstractMatrix{T}) where T
-
     # enforce Float32
     c = checkandconvert(c)
     A = checkandconvert(A)
@@ -79,9 +72,7 @@ function _GPUInplace(c::AbstractVector, (A, B, C), x::AbstractVector, input_data
     N, _ = size(input_data)
     gpu_f = CuArray{T}(undef, num_points)
 
-    # copy the data to the GPU
-    gpu_x = CuArray(x)
-    gpu_input_data = CuArray(input_data)
+    gpu_x, gpu_input_data = CuArray(x), CuArray(input_data)
 
     gpu_p0 = CuArray{eltype(x)}(undef, num_points)
     gpu_p1 = CuArray{eltype(x)}(undef, num_points)
@@ -102,7 +93,7 @@ function _GPUInplace(c::AbstractVector, (A, B, C), x::AbstractVector, input_data
 
     @inbounds for n = N:num_coeffs-1
         @. gpu_next = (A[n] * gpu_x + B[n]) * gpu_p1 - C[n] * gpu_p0
-        
+
         @. gpu_p0 = gpu_p1
         @. gpu_p1 = gpu_next
 
@@ -121,9 +112,9 @@ end
 function rowthreadedinplace!(start_index::Integer, f::AbstractVector, x::AbstractVector, c::AbstractVector, (A, B, C), p0::AbstractVector, p1::AbstractVector)
     num_coeffs = length(c)
     num_points = length(x)
-    
+
     next = Vector{eltype(x)}(undef, num_points)
-    
+
     @inbounds for n = start_index:num_coeffs-1
         Threads.@threads for j in axes(x, 1)
             next[j] = (A[n] * x[j] + B[n]) * p1[j] - C[n] * p0[j]
