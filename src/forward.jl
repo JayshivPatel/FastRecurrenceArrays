@@ -96,17 +96,17 @@ function GPUForward(z::AbstractVector, (A, B, C), n::Integer, input_data::Abstra
     N, M = size(input_data)
 
     # copy the data onto the GPU
-    gpu_z, gpu_A, gpu_B, gpu_C = CuArray(z), CuArray(A), CuArray(B), CuArray(C)
+    gpu_z, gpu_A, gpu_B, gpu_C = CUDA.CuArray(z), CUDA.CuArray(A), CUDA.CuArray(B), CUDA.CuArray(C)
 
     # allocate a fixed size output matrix on the GPU
-    gpu_output_data = CuArray{T}(undef, (M, n))
+    gpu_output_data = CUDA.CuArray{T}(undef, (M, n))
 
     if N < 2
         gpu_output_data[:, 1] .= CUDA.one(T)
         gpu_output_data[:, 2] .= (view(gpu_A, 1) .* gpu_z .+ view(gpu_B, 1)) .* CUDA.one(T)
         N = 2
     else
-        gpu_input_data = CuArray(transpose(input_data))
+        gpu_input_data = CUDA.CuArray(transpose(input_data))
         gpu_output_data[axes(gpu_input_data)...] = gpu_input_data
     end
 

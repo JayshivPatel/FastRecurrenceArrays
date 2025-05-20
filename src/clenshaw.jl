@@ -63,11 +63,11 @@ function _GPUClenshaw(c::AbstractVector, (A, B, C), x::AbstractVector, p0::Nothi
 
     num_coeffs == 0 && return CUDA.zeros(T, num_points)
 
-    gpu_x = CuArray(x)
+    gpu_x = CUDA.CuArray(x)
     gpu_bn2 = CUDA.zeros(T, num_points)
     gpu_bn1 = CUDA.fill(convert(T, c[num_coeffs]), num_points)
-    gpu_next = CuArray{T}(undef, num_points)
-    gpu_f = CuArray{T}(undef, num_points)
+    gpu_next = CUDA.CuArray{T}(undef, num_points)
+    gpu_f = CUDA.CuArray{T}(undef, num_points)
 
     num_coeffs == 1 && return gpu_bn1
 
@@ -103,13 +103,13 @@ function _GPUClenshaw(c::AbstractVector, (A, B, C), x::AbstractVector, p0::Abstr
 
     num_coeffs == 0 && return CUDA.zeros(T, num_points)
 
-    gpu_x = CuArray(x)
+    gpu_x = CUDA.CuArray(x)
     gpu_bn2 = CUDA.zeros(T, num_points)
     gpu_bn1 = CUDA.fill(convert(T, c[num_coeffs]), num_points)
-    gpu_next = CuArray{T}(undef, num_points)
-    gpu_f = CuArray{T}(undef, num_points)
-    gpu_p0 = CuArray(p0)
-    gpu_p1 = CuArray(p1)
+    gpu_next = CUDA.CuArray{T}(undef, num_points)
+    gpu_f = CUDA.CuArray{T}(undef, num_points)
+    gpu_p0 = CUDA.CuArray(p0)
+    gpu_p1 = CUDA.CuArray(p1)
 
     num_coeffs == 1 && return gpu_bn1
 

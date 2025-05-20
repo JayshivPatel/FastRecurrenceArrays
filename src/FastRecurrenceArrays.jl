@@ -2,7 +2,7 @@ module FastRecurrenceArrays
 
 import Base: copy, size, show, string, getindex
 import ClassicalOrthogonalPolynomials: _p0, orthogonalityweight, recurrencecoefficients, Legendre, OrthogonalPolynomial, Ultraspherical
-import CUDA: CuArray
+import CUDA
 import Distributed: workers, map, fetch
 import DistributedData: save_at, get_val_from
 import RecurrenceRelationships: _clenshaw_first, clenshaw, check_clenshaw_recurrences, clenshaw_next, forwardrecurrence_partial!, forwardrecurrence_next

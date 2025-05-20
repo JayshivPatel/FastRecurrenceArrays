@@ -16,33 +16,33 @@ end
 # Clenshaw
 
 function ClenshawCauchy(n::Integer, x::AbstractVector, f::AbstractVector)
-    rec_P, data = cauchy_init(n, x)
+    rec_P, data = cauchy_init(n + 1, x)
     return FixedClenshaw(f, rec_P, x, view(data, 1, :), view(data, 2, :))
 end
 
 function ThreadedClenshawCauchy(n::Integer, x::AbstractVector, f::AbstractVector, dims::Union{Val{1}, Val{2}})
-    rec_P, data = cauchy_init(n, x)
+    rec_P, data = cauchy_init(n + 1, x)
     return ThreadedClenshaw(f, rec_P, x, view(data, 1, :), view(data, 2, :), dims)
 end
 
 function GPUClenshawCauchy(n::Integer, x::AbstractVector, f::AbstractVector)
-    (A, B, C), data = cauchy_init(n, x)
+    (A, B, C), data = cauchy_init(n + 1, x)
     return GPUClenshaw(f, (Float32.(A), Float32.(B), Float32.(C)), x, view(data, 1, :), view(data, 2, :))
 end
 
 function ClenshawLogKernel(n::Integer, x::AbstractVector, f::AbstractVector)
-    rec_P, data = logkernel_init(n, x)
-    return real.(f[1] * view(data, 1, :) .+ FixedClenshaw(f[2:end], rec_P, x, view(data, 2, :), view(data, 3, :)))
+    (A, B, C), data = logkernel_init(n + 2, x)
+    return real.(f[1] * view(data, 1, :) .+ FixedClenshaw(f[2:end], (A[2:end], B[2:end], C[2:end]), x, view(data, 2, :), view(data, 3, :)))
 end
 
 function ThreadedClenshawLogKernel(n::Integer, x::AbstractVector, f::AbstractVector, dims::Union{Val{1}, Val{2}})
-    rec_P, data = logkernel_init(n, x)
-    return real.(f[1] * view(data, 1, :) .+ ThreadedClenshaw(f[2:end], rec_P, x, view(data, 2, :), view(data, 3, :), dims))
+    (A, B, C), data = logkernel_init(n + 2, x)
+    return real.(f[1] * view(data, 1, :) .+ ThreadedClenshaw(f[2:end], (A[2:end], B[2:end], C[2:end]), x, view(data, 2, :), view(data, 3, :), dims))
 end
 
 function GPUClenshawLogKernel(n::Integer, x::AbstractVector, f::AbstractVector)
-    (A, B, C), data = logkernel_init(n, x)
-    return real.(f[1] * view(data, 1, :) .+ GPUClenshaw(f, (Float32.(A), Float32.(B), Float32.(C)), x, view(data, 2, :), view(data, 3, :)))
+    (A, B, C), data = logkernel_init(n + 2, x)
+    return real.(f[1] * view(data, 1, :) .+ GPUClenshaw(f[2:end], (Float32.(A[2:end]), Float32.(B[2:end]), Float32.(C[2:end])), x, view(data, 2, :), view(data, 3, :)))
 end
 
 # Inplace

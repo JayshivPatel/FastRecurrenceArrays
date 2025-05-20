@@ -70,13 +70,13 @@ function _GPUInplace(c::AbstractVector, (A, B, C), x::AbstractVector, input_data
     @assert num_coeffs >= 2
 
     N, _ = size(input_data)
-    gpu_f = CuArray{T}(undef, num_points)
+    gpu_f = CUDA.CuArray{T}(undef, num_points)
 
-    gpu_x, gpu_input_data = CuArray(x), CuArray(input_data)
+    gpu_x, gpu_input_data = CUDA.CuArray(x), CUDA.CuArray(input_data)
 
-    gpu_p0 = CuArray{eltype(x)}(undef, num_points)
-    gpu_p1 = CuArray{eltype(x)}(undef, num_points)
-    gpu_next = CuArray{eltype(x)}(undef, num_points)
+    gpu_p0 = CUDA.CuArray{eltype(x)}(undef, num_points)
+    gpu_p1 = CUDA.CuArray{eltype(x)}(undef, num_points)
+    gpu_next = CUDA.CuArray{eltype(x)}(undef, num_points)
 
     if N < 2
         @. gpu_p0 = CUDA.one(T)
