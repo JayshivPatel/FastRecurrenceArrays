@@ -87,8 +87,8 @@ function cauchy_init(n::Integer, x::AbstractVector)
 
     data = Matrix{T}(undef, 2, length(x))
 
-    data[1, :] .= stieltjes(w, x) .* _p0(P)
-    data[2, :] .= (A[1] .* x .+ B[1]) .* data[1, :] .- (A[1]sum(w) * _p0(P))
+    data[1, :] .= -stieltjes(w, x) .* _p0(P)
+    data[2, :] .= (A[1] .* x .+ B[1]) .* data[1, :] .+ (A[1]sum(w) * _p0(P))
 
     return (A, B, C), data
 end

@@ -13,11 +13,11 @@ import Test: @test, @testset
 
     @testset "Cauchy" begin
         # Forward (cauchy)
-        @test (inv.(x[1] .- axes(P, 1)') * f) ≈ FixedCauchy(N, x, ff)[1];
+        @test -(inv.(x[1] .- axes(P, 1)') * f) ≈ FixedCauchy(N, x, ff)[1];
         # Clenshaw (cauchy)
-        @test (inv.(x[1] .- axes(P, 1)') * f) ≈ ClenshawCauchy(N, x, ff)[1];
+        @test -(inv.(x[1] .- axes(P, 1)') * f) ≈ ClenshawCauchy(N, x, ff)[1];
         # Forward inplace (cauchy)
-        @test (inv.(x[1] .- axes(P, 1)') * f) ≈ InplaceCauchy(N, x, ff)[1];
+        @test -(inv.(x[1] .- axes(P, 1)') * f) ≈ InplaceCauchy(N, x, ff)[1];
     end
 
     @testset "LogKernel" begin
