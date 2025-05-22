@@ -1,0 +1,64 @@
+using FastRecurrenceArrays, RecurrenceRelationshipArrays, SingularIntegrals,
+    ClassicalOrthogonalPolynomials, LinearAlgebra, CairoMakie, FastGaussQuadrature;
+
+x = range(ComplexF64(-1.0), ComplexF64(1.0), 1000);
+
+P = Legendre();
+f_N = expand(P, exp);
+
+function cauchytransforms(n)
+    forward = Vector{Float64}(undef, length(x))
+    inplace = Vector{Float64}(undef, length(x))
+    clenshaw = Vector{Float64}(undef, length(x))
+
+    ff = Float64.(collect(f_N.args[2][1:n]))
+
+    forward .= abs.(FixedCauchy(n, x, ff))
+    inplace .= abs.(InplaceCauchy(n, x, ff))
+    clenshaw .= abs.(ClenshawCauchy(n, x, ff))
+
+    return forward, inplace, clenshaw
+end;
+
+baseline_c = [Float64.(abs.((inv.(x₀ .- axes(P, 1)')) * f_N)) for x₀ in x];
+
+pt = 4 / 3;
+inch = 96;
+
+set_theme!(
+    theme_latexfonts(),
+    fontsize=round(13pt),
+    linewidth=2,
+    markersize=13,
+    figure_padding=12,
+);
+
+fig = Figure(size=(6.28inch, 4inch));
+
+ax = Axis(
+    fig[1, 1],
+    xlabel=L"x",
+    ylabel=L"|\mathcal{C}[\exp](x)|",
+    title=L"Cauchy stability of forward, forward-inplace and clenshaw\\for $x \in [-1, 1]$ inside the integral domain using $100,000$ recurrences",
+);
+
+forward, inplace, clenshaw = cauchytransforms(100_000);
+
+lines!(ax, real(x), baseline_c, linewidth=2);
+# shift the colours
+scatter!(ax, [0], [0], visible=false);
+scatter!(ax, real(x)[1:90:end], forward[1:90:end]);
+scatter!(ax, real(x)[30:90:end], inplace[30:90:end]);
+scatter!(ax, real(x)[60:90:end], clenshaw[60:90:end]);
+
+Legend(
+    fig[2, 1],
+    [b, f, i, c],
+    [L"baseline$$", L"forward$$", L"forward-inplace$$", L"clenshaw$$"],
+    orientation=:horizontal,
+    framevisible=false,
+);
+
+fig;
+
+save("blowup-cauchy-inside.svg", fig);

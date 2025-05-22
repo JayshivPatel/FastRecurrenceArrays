@@ -1,46 +1,46 @@
 using FastRecurrenceArrays, RecurrenceRelationshipArrays, SingularIntegrals, 
     ClassicalOrthogonalPolynomials, LinearAlgebra, FastGaussQuadrature, BenchmarkTools;
 
-x = range(ComplexF32(-10.0), ComplexF32(10.0), 100_000);
+x = range(ComplexF64(-10.0), ComplexF64(10.0), 100_000);
 
 f_g(x, z) = log(z-x)*exp(x);
 
-P = Legendre(); f_N = expand(P, exp);
+P = Legendre();
+f_N = expand(P, exp);
+
+n_fast = 15;
+n_gauss = 1000;
 
 println("Log Transform Baseline");
 println(median(run(
     @benchmarkable collect(log.(abs.($x .- $axes(P, 1)')) * $f_N) samples = 100 seconds = 500
 )));
 
-n = 1_000;
-
-ff = Float32.(collect(f_N.args[2][1:n]));
-println("Log Transform FixedLogKernel");
+ff = Float32.(collect(f_N.args[2][1:n_fast]));
+println("Log Transform Forward");
 println(median(run(
-    @benchmarkable FixedLogKernel($n, $x, $ff) samples = 100 seconds = 500
+    @benchmarkable FixedLogKernel($n_fast, $x, $ff) samples = 100 seconds = 500
 )));
 
-println("Log Transform InplaceLogKernel");
+println("Log Transform Inplace");
 println(median(run(
-    @benchmarkable InplaceLogKernel($n, $x, $ff) samples = 100 seconds = 500
+    @benchmarkable InplaceLogKernel($n_fast, $x, $ff) samples = 100 seconds = 500
 )));
 
-
-println("Threads: " * string(Threads.nthreads()));
-println("Log Transform ThreadedInplaceLogKernel");
+println("Log Transform Clenshaw");
 println(median(run(
-    @benchmarkable ThreadedInplaceLogKernel($n, $x, $ff) samples = 100 seconds = 500
+    @benchmarkable ClenshawLogKernel($n_fast, $x, $ff) samples = 100 seconds = 500
 )));
 
-println("Log Transform GPUInplaceLogKernel");
-println(median(run(
-    @benchmarkable GPUInplaceLogKernel($n, $x, $ff) samples = 100 seconds = 500
-)));
-
-
-x_g, w_g = gausslegendre(n);
+x_g, w_g = gausslegendre(n_gauss);
 println("Log Transform FastGaussQuadrature");
+output = Vector{ComplexF64}(undef, 100_000);
+function gauss(x)
+    for (i, x₀) in enumerate(x)
+        output[i] = dot(w_g, f_g.(x_g, x₀))
+    end
+end;
 println(median(run(
-    @benchmarkable [dot($w_g, f_g.($x_g, x₀)) for x₀ in $x] samples = 100 seconds = 500
+    @benchmarkable gauss($x) samples = 100 seconds = 500
 )));
 

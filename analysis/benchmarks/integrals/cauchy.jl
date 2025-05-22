@@ -1,46 +1,45 @@
 using FastRecurrenceArrays, RecurrenceRelationshipArrays, SingularIntegrals,
     ClassicalOrthogonalPolynomials, LinearAlgebra, FastGaussQuadrature, BenchmarkTools;
 
-x = range(ComplexF32(-10.0), ComplexF32(10.0), 100_000);
+x = range(ComplexF64(-10.0), ComplexF64(10.0), 100_000);
 
-f_g(x, z) = exp(x) / (z - x);
+f_g(x, z) = exp(x)/(z - x);
 
 P = Legendre();
 f_N = expand(P, exp);
 
+n_fast = 15;
+n_gauss = 1000;
+
 println("Cauchy Transform Baseline");
 println(median(run(
-    @benchmarkable collect($(-inv(2π * im)) * (inv.($x .- $axes(P, 1)') * $f_N)) samples = 100 seconds = 500
+    @benchmarkable collect(-inv.($x .- $axes(P, 1)') * $f_N) samples = 100 seconds = 500
 )));
 
-n = 1_000;
-
-ff = Float32.(collect(f_N.args[2][1:n]));
-println("Cauchy Transform FixedCauchy");
+ff = Float32.(collect(f_N.args[2][1:n_fast]));
+println("Cauchy Transform Forward");
 println(median(run(
-    @benchmarkable FixedCauchy($n, $x, $ff) samples = 100 seconds = 500
+    @benchmarkable FixedCauchy($n_fast, $x, $ff) samples = 100 seconds = 500
 )));
 
-
-println("Cauchy Transform InplaceCauchy");
+println("Cauchy Transform Inplace");
 println(median(run(
-    @benchmarkable InplaceCauchy($n, $x, $ff) samples = 100 seconds = 500
+    @benchmarkable InplaceCauchy($n_fast, $x, $ff) samples = 100 seconds = 500
 )));
 
-
-println("Threads: " * string(Threads.nthreads()));
-println("Cauchy Transform ThreadedInplaceCauchy");
+println("Cauchy Transform Clenshaw");
 println(median(run(
-    @benchmarkable ThreadedInplaceCauchy($n, $x, $ff) samples = 100 seconds = 500
+    @benchmarkable ClenshawCauchy($n_fast, $x, $ff) samples = 100 seconds = 500
 )));
 
-println("Cauchy Transform GPUInplaceCauchy");
-println(median(run(
-    @benchmarkable GPUInplaceCauchy($n, $x, $ff) samples = 100 seconds = 500
-)));
-
-x_g, w_g = gausslegendre(n);
+x_g, w_g = gausslegendre(n_gauss);
 println("Cauchy Transform FastGaussQuadrature");
+output = Vector{ComplexF64}(undef, 100_000);
+function gauss(x)
+    for (i, x₀) in enumerate(x)
+        output[i] = dot(w_g, f_g.(x_g, x₀))
+    end
+end;
 println(median(run(
-    @benchmarkable [$(inv(2π * im)) * dot($w_g, f_g.($x_g, x₀)) for x₀ in $x] samples = 100 seconds = 500
+    @benchmarkable gauss($x) samples = 100 seconds = 500
 )));
