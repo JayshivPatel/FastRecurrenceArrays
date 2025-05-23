@@ -26,20 +26,19 @@ pt = 4 / 3;
 inch = 96;
 
 set_theme!(
-    theme_latexfonts(),
     fontsize=round(13pt),
     linewidth=2,
     markersize=13,
     figure_padding=12,
+    fonts=(regular="charter", bold="charter bold", italic="charter italic", bold_italic="charter bold italic"),
 );
 
-fig = Figure(size=(6.28inch, 4inch));
+fig = Figure(size=(6.28inch, 3inch));
 
 ax = Axis(
     fig[1, 1],
     xlabel=L"x",
     ylabel=L"|\mathcal{C}[\exp](x)|",
-    title=L"Cauchy stability of forward, forward-inplace and clenshaw\\for $x \in [-1, 1]$ inside the integral domain using $100,000$ recurrences",
 );
 
 forward, inplace, clenshaw = cauchytransforms(100_000);
@@ -54,7 +53,7 @@ scatter!(ax, real(x)[60:90:end], clenshaw[60:90:end]);
 Legend(
     fig[2, 1],
     [b, f, i, c],
-    [L"baseline$$", L"forward$$", L"forward-inplace$$", L"clenshaw$$"],
+    ["baseline", "forward", "forward-inplace", "clenshaw"],
     orientation=:horizontal,
     framevisible=false,
 );

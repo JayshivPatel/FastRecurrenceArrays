@@ -121,20 +121,19 @@ pt = 4 / 3;
 inch = 96;
 
 set_theme!(
-    theme_latexfonts(),
     fontsize=round(13pt),
     linewidth=2,
     markersize=13,
     figure_padding=12,
+    fonts=(regular="charter", bold="charter bold", italic="charter italic", bold_italic="charter bold italic"),
 );
 
 fig = Figure(size=(6.5inch, 6.5inch));
 
 ax1 = Axis(
     fig[1, 1],
-    xlabel=L"$n$",
-    ylabel=L"Mean Squared Error$$",
-    title=L"Convergence of the Cauchy and Log Transforms\\for $x \in [-1, 1]$ inside the integral domain using $n$ recurrences\\\\Log Transform",
+    xlabel=L"n",
+    ylabel="Mean Squared Error",
     yscale=log10,
     xscale=log10,
 );
@@ -153,9 +152,8 @@ g = lines!(ax1, r, differencesg_log);
 
 ax2 = Axis(
     fig[2, 1],
-    xlabel=L"$n$",
-    ylabel=L"Mean Squared Error$$",
-    title=L"Cauchy Transform$$",
+    xlabel=L"n",
+    ylabel="Mean Squared Error",
     yscale=log10,
     xscale=log10,
 );
@@ -173,8 +171,8 @@ lines!(ax2, r, differencesg_c);
 Legend(
     fig[1:2, 2],
     [[f, i, c], [g]],
-    [[L"forward$$", L"forward-inplace$$", L"clenshaw$$"], [L"gauss-legendre$$"]],
-    [L"FastRecurrenceArrays$$", L"FastGaussQuadrature$$"],
+    [["forward", "forward-inplace", "clenshaw"], ["gauss-legendre"]],
+    ["FastRecurrenceArrays", "FastGaussQuadrature"],
     orientation=:vertical,
     framevisible=false,
     groupgap=50
