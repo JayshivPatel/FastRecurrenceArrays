@@ -121,7 +121,7 @@ set_theme!(
     fonts=(regular="charter", bold="charter bold", italic="charter italic", bold_italic="charter bold italic"),
 );
 
-fig = Figure(size=(6.5inch, 6.5inch));
+fig = Figure(size=(6.5inch, 5inch));
 
 ax1 = Axis(
     fig[2, 1],
@@ -164,14 +164,14 @@ scatter!(ax2, r[4:7:end], differencesc_c[4:7:end]);
 lines!(ax2, r, differencesg_c);
 
 Legend(
-    fig[1:2, 2],
-    [[f, i, c], [g]],
-    [["forward", "forward-inplace", "clenshaw"], ["gauss-legendre"]],
-    ["FastRecurrenceArrays", "FastGaussQuadrature"],
-    orientation=:vertical,
+    fig[3, 1],
+    [f, i, c, g],
+    ["forward", "forward-inplace", "clenshaw", "gauss-legendre"],
+    orientation=:horizontal,
     framevisible=false,
     groupgap=50
 );
+
 fig
 
 save("abs-outside.svg", fig);
