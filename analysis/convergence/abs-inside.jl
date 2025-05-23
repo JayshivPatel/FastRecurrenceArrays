@@ -133,7 +133,7 @@ fig = Figure(size=(6.5inch, 5inch));
 ax1 = Axis(
     fig[2, 1],
     xlabel=L"n",
-    ylabel="Mean Squared Error",
+    ylabel="Mean Absolute Error",
     title="Log Transform",
     yscale=log10,
     xscale=log10,
@@ -154,7 +154,7 @@ g = lines!(ax1, r, differencesg_log);
 ax2 = Axis(
     fig[1, 1],
     xlabel=L"n",
-    ylabel="Mean Squared Error",
+    ylabel="Mean Absolute Error",
     title="Cauchy Transform",
     yscale=log10,
     xscale=log10,
