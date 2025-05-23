@@ -2,7 +2,7 @@ using CairoMakie, CSV, DataFrames;
 
 df = CSV.read("./analysis/benchmarks/forward/recurrence-scaling-10-points.csv", DataFrame);
 
-points = parse.(Int, replace.(df[!, "Recurrences"], "_" => ""));
+recurrences = parse.(Int, replace.(df[!, "Recurrences"], "_" => ""));
 fixed = df[!, "Fixed"]
 gpu = df[!, "GPU"]
 column = df[!, "Column-wise (8)"]
@@ -14,19 +14,18 @@ pt = 4 / 3;
 inch = 96;
 
 set_theme!(
-    theme_latexfonts(),
     fontsize=round(13pt),
     linewidth=2,
     markersize=13,
     figure_padding=1,
+    fonts=(regular="charter", bold="charter bold", italic="charter italic", bold_italic="charter bold italic"),
 );
 
-fig = Figure(size=(6.3inch, 4.5inch));
+fig = Figure(size=(6.3inch, 3inch));
 ax = Axis(
     fig[1, 1],
-    title=L"Recurrence scaling of forward' at $10$ points",
-    xlabel=L"Recurrences$$",
-    ylabel=L"Time [s]$$",
+    xlabel="Recurrences",
+    ylabel="Time [s]",
     yscale=log10,
     xscale=log10
 );
@@ -40,7 +39,7 @@ d = scatterlines!(ax, recurrences, distributed);
 Legend(
     fig[2, 1],
     [f, g, c, r, d],
-    [L"Control$$", L"GPU$$", L"Column (8)$$", L"Row (2)$$", L"Distributed (4)$$"],
+    ["Control", "GPU", "Column (8)", "Row (2)", "Distributed (4)"],
     orientation=:horizontal,
     framevisible=false
 );

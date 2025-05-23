@@ -10,25 +10,24 @@ pt = 4 / 3;
 inch = 96;
 
 set_theme!(
-    theme_latexfonts(),
     fontsize=round(13pt),
     linewidth=2,
     markersize=13,
     figure_padding=1,
+    fonts=(regular="charter", bold="charter bold", italic="charter italic", bold_italic="charter bold italic"),
 );
 
-fig = Figure(size=(6.27inch, 3inch), padding=0);
+fig = Figure(size=(6.27inch, 2inch), padding=0);
 ax = Axis(
     fig[1, 1],
-    title=L"Thread scaling of forward' with $10^4$ recurrences at $10^4$ points",
-    xlabel=L"Threads$$",
-    ylabel=L"Time [s]$$",
+    xlabel="Threads",
+    ylabel="Time [s]",
     xticks=(2:2:8),
 );
 
 r = scatterlines!(ax, threads, row);
 c = scatterlines!(ax, threads, column);
-axislegend(ax, [r, c], [L"Row-wise$$", L"Column-wise$$"], position=:lt, orientation=:vertical, backgroundcolor=(:white, 0.85));
+axislegend(ax, [r, c], ["Row-wise", "Column-wise"], position=:lt, orientation=:vertical, backgroundcolor=(:white, 0.85));
 
 fig
 

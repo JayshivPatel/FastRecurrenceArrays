@@ -4,18 +4,17 @@ pt = 4 / 3;
 inch = 96;
 
 set_theme!(
-    theme_latexfonts(),
     fontsize=round(13pt),
     linewidth=2,
     markersize=13,
     figure_padding=12,
+    fonts=(regular="charter", bold="charter bold", italic="charter italic", bold_italic="charter bold italic"),
 );
 
-fig = Figure(size=(6.27inch, 3.5inch));
+fig = Figure(size=(6.27inch, 3inch));
 
 ax = Axis(
     fig[1, 1],
-    title=L"Visualisation of the first five Legendre Polynomials$$",
     xlabel=L"x",
     ylabel=L"P_n(x)",
     limits = ((-1, 1), (-1, 1))

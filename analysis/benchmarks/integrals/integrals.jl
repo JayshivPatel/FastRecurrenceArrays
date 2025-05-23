@@ -1,6 +1,6 @@
 using CairoMakie, CSV, DataFrames;
 
-df = CSV.read("./analysis/benchmarks/integrals/integrals.csv", DataFrame);
+df = CSV.read("./analysis/benchmarks/integrals/integrals-time.csv", DataFrame);
 
 cauchy = df[!, "Cauchy"];
 log = df[!, "LogKernel"];
@@ -17,19 +17,18 @@ pt = 4 / 3;
 inch = 96;
 
 set_theme!(
-    theme_latexfonts(),
     fontsize=round(13pt),
     linewidth=2,
     markersize=13,
     figure_padding=1,
+    fonts=(regular="charter", bold="charter bold", italic="charter italic", bold_italic="charter bold italic"),
 );
 
 fig = Figure(size=(6.27inch, 3inch));
 ax = Axis(
     fig[1, 1],
-    title=L"Computation time of Cauchy and Log Transforms on $10^5$ points by method",
-    xlabel=L"Time [s]$$",
-    yticks=(1:5, [L"clenshaw$$", L"forward-inplace$$", L"forward$$", L"gausslegendre$$", L"baseline$$"]),
+    xlabel="Time [s]",
+    yticks=(1:5, ["clenshaw", "forward-inplace", "forward", "gausslegendre", "baseline"]),
     xscale=log10,
 );
 
@@ -50,6 +49,7 @@ legend = Legend(
     [PolyElement(color=c2), PolyElement(color=c1)],
     ["Cauchy", "Log"],
     orientation=:vertical,
+    framevisible=false,
 );
 
 fig

@@ -14,19 +14,18 @@ pt = 4 / 3;
 inch = 96;
 
 set_theme!(
-    theme_latexfonts(),
     fontsize=round(13pt),
     linewidth=2,
     markersize=13,
-    figure_padding=1,
+    figure_padding=8,
+    fonts=(regular="charter", bold="charter bold", italic="charter italic", bold_italic="charter bold italic"),
 );
 
-fig = Figure(size=(6.2inch, 4inch));
+fig = Figure(size=(6.2inch, 3inch));
 ax = Axis(
     fig[1, 1],
-    title=L"Thread scaling of clenshaw/forward-inplace with\\$10^4$ recurrences at $10^4$ points",
-    xlabel=L"Threads$$",
-    ylabel=L"Time [s]$$",
+    xlabel="Threads",
+    ylabel="Time [s]",
     xticks=(2:2:8),
     yscale=log10,
 );
@@ -45,8 +44,8 @@ i_r = scatterlines!(ax, threads, inplace_r, linestyle=:dot);
 Legend(
     fig[2, 1],
     [[c_r, c_c], [i_r, i_c]],
-    [[L"row-wise$$", L"column-wise$$"], [L"row-wise$$", L"column-wise$$"]],
-    [L"clenshaw$$", L"forward-inplace$$"],
+    [["row-wise", "column-wise"], ["row-wise", "column-wise"]],
+    ["clenshaw", "forward-inplace"],
     orientation=:horizontal,
     framevisible=false,
     groupgap=50

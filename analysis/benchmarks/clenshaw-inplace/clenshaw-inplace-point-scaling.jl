@@ -19,18 +19,17 @@ pt = 4 / 3;
 inch = 96;
 
 set_theme!(
-    theme_latexfonts(),
     fontsize=round(13pt),
     linewidth=2,
     markersize=13,
     figure_padding=1,
+    fonts=(regular="charter", bold="charter bold", italic="charter italic", bold_italic="charter bold italic"),
 );
-fig = Figure(size=(6.27inch, 5inch));
+fig = Figure(size=(6.27inch, 4inch));
 ax = Axis(
     fig[1, 1],
-    title=L"Point scaling of clenshaw/forward-inplace with $10$ recurrences",
-    xlabel=L"Points$$",
-    ylabel=L"Time [s]$$",
+    xlabel="Points",
+    ylabel="Time [s]",
     yscale=log10,
     xscale=log10,
 );
@@ -53,8 +52,8 @@ c_i = scatterlines!(ax, points, column_i, color=c_color, linestyle=:dot);
 Legend(
     fig[2, 1],
     [[f_c, g_c, r_c, c_c], [f_i, g_i, r_i, c_i]],
-    [[L"Control$$", L"GPU$$", L"Row-wise (4)$$", L"Column-wise (8)$$"], [L"Control$$", L"GPU$$", L"Row-wise (4)$$", L"Column-wise (8)$$"]],
-    [L"clenshaw$$", L"forward-inplace$$"],
+    [["Control", "GPU", "Row-wise (4)", "Column-wise (8)"], ["Control", "GPU", "Row-wise (4)", "Column-wise (8)"]],
+    ["clenshaw", "forward-inplace"],
     orientation=:horizontal,
     framevisible=false,
     nbanks=2,

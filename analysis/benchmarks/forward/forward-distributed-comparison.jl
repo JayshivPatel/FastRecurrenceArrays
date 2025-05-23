@@ -9,19 +9,18 @@ pt = 4 / 3;
 inch = 96;
 
 set_theme!(
-    theme_latexfonts(),
     fontsize=round(13pt),
     linewidth=2,
     markersize=13,
     figure_padding=1,
+    fonts=(regular="charter", bold="charter bold", italic="charter italic", bold_italic="charter bold italic"),
 );
 
-fig = Figure(size=(6.27inch, 3inch));
+fig = Figure(size=(6.27inch, 2inch));
 ax = Axis(
     fig[1, 1],
-    title=L"Worker scaling of forward' with $10^4$ recurrences at $10^4$ points",
-    xlabel=L"Workers$$",
-    ylabel=L"Time [s]$$",
+    xlabel="Workers",
+    ylabel="Time [s]",
     xticks=(1:4)
 );
 
