@@ -68,23 +68,23 @@ for (i, n) in enumerate(r)
     f = logforward(n)
     valid = .!(isnan.(f) .| isnan.(baseline_log))
     num_valid = length(valid)
-    differencesf_log[i] = 1 / num_valid * norm(f[valid] .- baseline_log[valid])
+    differencesf_log[i] = 1 / num_valid * norm(f[valid] .- baseline_log[valid], 1)
 
     inp = loginplace(n)
     valid = .!(isnan.(inp) .| isnan.(baseline_log))
     num_valid = length(valid)
-    differencesi_log[i] = 1 / num_valid * norm(inp[valid] .- baseline_log[valid])
+    differencesi_log[i] = 1 / num_valid * norm(inp[valid] .- baseline_log[valid], 1)
 
     c = logclenshaw(n)
     valid = .!(isnan.(c) .| isnan.(baseline_log))
     num_valid = length(valid)
-    differencesc_log[i] = 1 / num_valid * norm(c[valid] .- baseline_log[valid])
+    differencesc_log[i] = 1 / num_valid * norm(c[valid] .- baseline_log[valid], 1)
 
     x_g, w_g = gausslegendre(n)
     g = [Float64.(real(dot(w_g, log_g.(x_g, x₀)))) for x₀ in x]
     valid = .!(isnan.(g) .| isnan.(baseline_log))
     num_valid = length(valid)
-    differencesg_log[i] = 1 / num_valid * norm(g[valid] .- baseline_log[valid])
+    differencesg_log[i] = 1 / num_valid * norm(g[valid] .- baseline_log[valid], 1)
 end;
 
 baseline_c = [Float64.(abs.((-inv.(x₀ .- axes(P, 1)') * f_N))) for x₀ in x];
@@ -98,23 +98,23 @@ for (i, n) in enumerate(r)
     f = cauchyforward(n)
     valid = .!(isnan.(f) .| isnan.(baseline_c))
     num_valid = length(valid)
-    differencesf_c[i] = 1 / num_valid * norm(f[valid] .- baseline_c[valid])
+    differencesf_c[i] = 1 / num_valid * norm(f[valid] .- baseline_c[valid], 1)
 
     inp = cauchyinplace(n)
     valid = .!(isnan.(inp) .| isnan.(baseline_c))
     num_valid = length(valid)
-    differencesi_c[i] = 1 / num_valid * norm(inp[valid] .- baseline_c[valid])
+    differencesi_c[i] = 1 / num_valid * norm(inp[valid] .- baseline_c[valid], 1)
 
     c = cauchyclenshaw(n)
     valid = .!(isnan.(c) .| isnan.(baseline_c))
     num_valid = length(valid)
-    differencesc_c[i] = 1 / num_valid * norm(c[valid] .- baseline_c[valid])
+    differencesc_c[i] = 1 / num_valid * norm(c[valid] .- baseline_c[valid], 1)
 
     x_g, w_g = gausslegendre(n)
     g = [abs.(dot(w_g, c_g.(x_g, x₀))) for x₀ in x]
     valid = .!(isnan.(g) .| isnan.(baseline_c))
     num_valid = length(valid)
-    differencesg_c[i] = 1 / num_valid * norm(g[valid] .- baseline_c[valid])
+    differencesg_c[i] = 1 / num_valid * norm(g[valid] .- baseline_c[valid], 1)
 end;
 
 pt = 4 / 3;

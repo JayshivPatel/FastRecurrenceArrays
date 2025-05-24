@@ -1,7 +1,7 @@
 using FastRecurrenceArrays, RecurrenceRelationshipArrays, SingularIntegrals,
     ClassicalOrthogonalPolynomials, LinearAlgebra, CairoMakie, FastGaussQuadrature;
 
-x = range(ComplexF64(1.0001), ComplexF64(3.0), 1000);
+x = range(ComplexF64(1.0001), ComplexF64(10.0), 1000);
 
 log_g(x, z) = log(z - x) * exp(x);
 c_g(x, z) = exp(x) / (x - z);
@@ -68,19 +68,23 @@ for (i, n) in enumerate(r)
     f = logforward(n)
     valid = .!(isnan.(f) .| isnan.(baseline_log))
     num_valid = length(valid)
-    differencesf_log[i] = 1 / num_valid * norm(f[valid] .- baseline_log[valid])
+    differencesf_log[i] = 1 / num_valid * norm(f[valid] .- baseline_log[valid], 1)
 
     inp = loginplace(n)
     valid = .!(isnan.(inp) .| isnan.(baseline_log))
     num_valid = length(valid)
-    differencesi_log[i] = 1 / num_valid * norm(inp[valid] .- baseline_log[valid])
+    differencesi_log[i] = 1 / num_valid * norm(inp[valid] .- baseline_log[valid], 1)
 
     c = logclenshaw(n)
-    differencesc_log[i] = 1 / length(x) * norm(c .- baseline_log)
+    valid = .!(isnan.(c) .| isnan.(baseline_log))
+    num_valid = length(valid)
+    differencesc_log[i] = 1 / num_valid * norm(c[valid] .- baseline_log[valid], 1)
 
     x_g, w_g = gausslegendre(n)
     g = [Float64.(real(dot(w_g, log_g.(x_g, x₀)))) for x₀ in x]
-    differencesg_log[i] = 1 / length(x) * norm(g .- baseline_log)
+    valid = .!(isnan.(g) .| isnan.(baseline_log))
+    num_valid = length(valid)
+    differencesg_log[i] = 1 / num_valid * norm(g[valid] .- baseline_log[valid], 1)
 end;
 
 baseline_c = [Float64.(-inv.(x₀ .- axes(P, 1)') * f_N) for x₀ in x];
@@ -94,20 +98,23 @@ for (i, n) in enumerate(r)
     f = cauchyforward(n)
     valid = .!(isnan.(f) .| isnan.(baseline_c))
     num_valid = length(valid)
-    differencesf_c[i] = 1 / num_valid * norm(f[valid] .- baseline_c[valid])
+    differencesf_c[i] = 1 / num_valid * norm(f[valid] .- baseline_c[valid], 1)
 
     inp = cauchyinplace(n)
     valid = .!(isnan.(inp) .| isnan.(baseline_c))
     num_valid = length(valid)
-    differencesi_c[i] = 1 / num_valid * norm(inp[valid] .- baseline_c[valid])
+    differencesi_c[i] = 1 / num_valid * norm(inp[valid] .- baseline_c[valid], 1)
 
     c = cauchyclenshaw(n)
-
-    differencesc_c[i] = 1 / length(x) * norm(c .- baseline_c)
+    valid = .!(isnan.(c) .| isnan.(baseline_c))
+    num_valid = length(valid)
+    differencesc_c[i] = 1 / num_valid * norm(c[valid] .- baseline_c[valid], 1)
 
     x_g, w_g = gausslegendre(n)
     g = [dot(w_g, c_g.(x_g, x₀)) for x₀ in x]
-    differencesg_c[i] = 1 / length(x) * norm(g .- baseline_c)
+    valid = .!(isnan.(g) .| isnan.(baseline_c))
+    num_valid = length(valid)
+    differencesg_c[i] = 1 / num_valid * norm(g[valid] .- baseline_c[valid], 1)
 end;
 
 pt = 4 / 3;
