@@ -1,10 +1,9 @@
 Method,Cauchy,LogKernel
-clenshaw,1.81360E-02,1.43820E-02
-forward-inplace,2.17270E-02,1.83060E-02
-forward,2.83410E-02,2.48830E-02
-FastGaussQuadrature,1.95800,3.40200
-SingularIntegrals,1.54400,7.17987E-01
-
+clenshaw,2.08330E-02,1.67930E-02
+forward-inplace,2.52970E-02,2.0518E-02
+forward,3.24150E-02,3.04590E-02
+FastGaussQuadrature,2.26200,3.91800
+SingularIntegrals,1.51800,6.91628E-01
 
 
 

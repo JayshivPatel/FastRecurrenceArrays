@@ -42,6 +42,11 @@ b = barplot!(
     color=table.groups,
     direction=:x,
     colormap=[c1, c2],
+    bar_labels=:y,
+    flip_labels_at=0.85,
+    color_over_background=:black,
+    color_over_bar=:white,
+    label_formatter = x -> round(x, sigdigits=3)
 );
 
 legend = Legend(

@@ -8,7 +8,7 @@ f_g(x, z) = exp(x)/(z - x);
 P = Legendre();
 f_N = expand(P, exp);
 
-n_fast = 15;
+n_fast = 20;
 n_gauss = 1000;
 
 println("Cauchy Transform Baseline");
