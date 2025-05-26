@@ -1,6 +1,6 @@
 using FastRecurrenceArrays, BenchmarkTools;
 
-x = range(Float32(-10), Float32(10), 1_000_000);
+x = range(Float32(-10), Float32(10), 8_000_000);
 M = length(x);
 N = 10;
 rec_U = (2 * ones(Float32, N), zeros(Float32, N), ones(Float32, N+1));

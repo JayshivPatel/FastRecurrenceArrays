@@ -1,9 +1,11 @@
 using CairoMakie, CSV, DataFrames;
 
-df = CSV.read("./analysis/benchmarks/forward/worker-scaling-10e4-recurrences-points.csv", DataFrame);
+df = CSV.read("./analysis/benchmarks/forward/worker-strong-scaling.csv", DataFrame);
 
 workers = df[!, "Workers"]
 time = df[!, "Distributed"]
+
+time = time[1] ./ time
 
 pt = 4 / 3;
 inch = 96;
@@ -20,12 +22,15 @@ fig = Figure(size=(6.27inch, 2inch));
 ax = Axis(
     fig[1, 1],
     xlabel="Workers",
-    ylabel="Time [s]",
+    ylabel="Speedup",
     xticks=(1:4)
 );
 
-d = scatterlines!(ax, workers, time);
+d = scatterlines!(ax, workers, workers, linestyle=:dot);
+w = scatterlines!(ax, workers, time);
+
+axislegend(ax, [d, w], ["Ideal", "Distributed"], position=:lt, orientation=:vertical, backgroundcolor=(:white, 0.85));
 
 fig
 
-save("forward-distributed-comparison.svg", fig)
+save("forward-worker-strong-scaling.svg", fig)

@@ -9,7 +9,7 @@ addprocs(["root@localhost"]; tunnel=true, sshflags=["-p", "2222", "-o", "StrictH
 
 x = range(Float32(-10), Float32(10), 1_000_000);
 M = length(x);
-N = 10;
+N = 100;
 rec_U = (2 * ones(Float32, N), zeros(Float32, N), ones(Float32, N+1));
 params = (x, rec_U, N);
 

@@ -1,7 +1,7 @@
 using CairoMakie, CSV, DataFrames;
 
-dfc = CSV.read("./analysis/benchmarks/clenshaw-inplace/clenshaw-thread-scaling-10e4-recurrences-points.csv", DataFrame);
-dfi = CSV.read("./analysis/benchmarks/clenshaw-inplace/inplace-thread-scaling-10e4-recurrences-points.csv", DataFrame);
+dfc = CSV.read("./analysis/benchmarks/clenshaw-inplace/clenshaw-weak-scaling.csv", DataFrame);
+dfi = CSV.read("./analysis/benchmarks/clenshaw-inplace/inplace-weak-scaling.csv", DataFrame);
 
 threads = dfc[!, "Threads"];
 clenshaw_r = dfc[!, "Row-wise"];
@@ -9,6 +9,12 @@ clenshaw_c = dfc[!, "Column-wise"];
 
 inplace_r = dfi[!, "Row-wise"];
 inplace_c = dfi[!, "Column-wise"];
+
+clenshaw_r = clenshaw_r[1] ./ clenshaw_r
+clenshaw_c = clenshaw_c[1] ./ clenshaw_c
+
+inplace_r = inplace_r[1] ./ inplace_r
+inplace_c = inplace_c[1] ./ inplace_c
 
 pt = 4 / 3;
 inch = 96;
@@ -25,11 +31,11 @@ fig = Figure(size=(6.2inch, 3inch));
 ax = Axis(
     fig[1, 1],
     xlabel="Threads",
-    ylabel="Time [s]",
+    ylabel="Efficiency",
     xticks=(2:2:8),
-    yscale=log10,
 );
 
+d = scatterlines!(ax, threads, ones(5), linestyle=:dot);
 c_c = scatterlines!(ax, threads, clenshaw_c);
 i_c = scatterlines!(ax, threads, inplace_c);
 
@@ -38,19 +44,19 @@ for i = 1:5
     scatterlines!(ax, [0], [0], visible=false)
 end
 
-c_r = scatterlines!(ax, threads, clenshaw_r, linestyle=:dot);
-i_r = scatterlines!(ax, threads, inplace_r, linestyle=:dot);
+c_r = scatterlines!(ax, threads, clenshaw_r, linestyle=(:dot, :dense));
+i_r = scatterlines!(ax, threads, inplace_r, linestyle=(:dot, :dense));
 
 Legend(
     fig[2, 1],
-    [[c_r, c_c], [i_r, i_c]],
-    [["row-wise", "column-wise"], ["row-wise", "column-wise"]],
-    ["clenshaw", "forward-inplace"],
+    [[d], [c_r, c_c], [i_r, i_c]],
+    [[""], ["row-wise", "column-wise"], ["row-wise", "column-wise"]],
+    ["ideal", "clenshaw", "forward-inplace"],
     orientation=:horizontal,
     framevisible=false,
-    groupgap=50
+    groupgap=20
 );
 
 fig
 
-save("clenshaw-inplace-threaded-comparison.svg", fig)
+save("clenshaw-inplace-weak-scaling.svg", fig)
