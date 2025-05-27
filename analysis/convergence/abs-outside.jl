@@ -1,18 +1,18 @@
 using FastRecurrenceArrays, RecurrenceRelationshipArrays, SingularIntegrals,
     ClassicalOrthogonalPolynomials, LinearAlgebra, CairoMakie, FastGaussQuadrature;
 
-x = range(ComplexF64(1.0001), ComplexF64(10.0), 1000);
+x = [range(ComplexF64(-10.0), ComplexF64(-1.0001), 500);range(ComplexF64(1.0001), ComplexF64(10.0), 500)];
 
 log_g(x, z) = log(z - x) * exp(x);
 c_g(x, z) = exp(x) / (x - z);
-r = [3:9; unique(floor.(Int, logrange(1e1, 1e4, 100)))];
+r = (3:25);
 
 P = Legendre();
 f_N = expand(P, exp);
 
 function logforward(n)
     vec = Vector{Float64}(undef, length(x))
-    ff = Float64.(collect(f_N.args[2][1:n]))
+    ff = transform(P[:, 1:n], exp);
 
     vec .= FixedLogKernel(n, x, ff)
     return vec
@@ -20,15 +20,15 @@ end;
 
 function cauchyforward(n)
     vec = Vector{ComplexF64}(undef, length(x))
-    ff = Float64.(collect(f_N.args[2][1:n]))
+    ff = transform(P[:, 1:n], exp);
 
-    vec .= FixedCauchy(n, x, ff)
+    vec .= abs.(FixedCauchy(n, x, ff))
     return vec
 end;
 
 function loginplace(n)
     vec = Vector{Float64}(undef, length(x))
-    ff = Float64.(collect(f_N.args[2][1:n]))
+    ff = transform(P[:, 1:n], exp);
 
     vec .= InplaceLogKernel(n, x, ff)
     return vec
@@ -36,15 +36,15 @@ end;
 
 function cauchyinplace(n)
     vec = Vector{ComplexF64}(undef, length(x))
-    ff = Float64.(collect(f_N.args[2][1:n]))
+    ff = transform(P[:, 1:n], exp);
 
-    vec .= InplaceCauchy(n, x, ff)
+    vec .= abs.(InplaceCauchy(n, x, ff))
     return vec
 end;
 
 function logclenshaw(n)
     vec = Vector{Float64}(undef, length(x))
-    ff = Float64.(collect(f_N.args[2][1:n]))
+    ff = transform(P[:, 1:n], exp);
 
     vec .= ClenshawLogKernel(n, x, ff)
     return vec
@@ -52,9 +52,9 @@ end;
 
 function cauchyclenshaw(n)
     vec = Vector{ComplexF64}(undef, length(x))
-    ff = Float64.(collect(f_N.args[2][1:n]))
+    ff = transform(P[:, 1:n], exp);
 
-    vec .= ClenshawCauchy(n, x, ff)
+    vec .= abs.(ClenshawCauchy(n, x, ff))
     return vec
 end;
 
@@ -79,19 +79,12 @@ for (i, n) in enumerate(r)
     valid = .!(isnan.(c) .| isnan.(baseline_log))
     num_valid = length(valid)
     differencesc_log[i] = 1 / num_valid * norm(c[valid] .- baseline_log[valid], 1)
-
-    x_g, w_g = gausslegendre(n)
-    g = [Float64.(real(dot(w_g, log_g.(x_g, x₀)))) for x₀ in x]
-    valid = .!(isnan.(g) .| isnan.(baseline_log))
-    num_valid = length(valid)
-    differencesg_log[i] = 1 / num_valid * norm(g[valid] .- baseline_log[valid], 1)
 end;
 
-baseline_c = [Float64.(-inv.(x₀ .- axes(P, 1)') * f_N) for x₀ in x];
+baseline_c = [Float64.(abs.((-inv.(x₀ .- axes(P, 1)') * f_N))) for x₀ in x];
 differencesf_c = Vector{Float64}(undef, length(r));
 differencesi_c = Vector{Float64}(undef, length(r));
 differencesc_c = Vector{Float64}(undef, length(r));
-differencesg_c = Vector{Float64}(undef, length(r));
 
 
 for (i, n) in enumerate(r)
@@ -109,12 +102,6 @@ for (i, n) in enumerate(r)
     valid = .!(isnan.(c) .| isnan.(baseline_c))
     num_valid = length(valid)
     differencesc_c[i] = 1 / num_valid * norm(c[valid] .- baseline_c[valid], 1)
-
-    x_g, w_g = gausslegendre(n)
-    g = [dot(w_g, c_g.(x_g, x₀)) for x₀ in x]
-    valid = .!(isnan.(g) .| isnan.(baseline_c))
-    num_valid = length(valid)
-    differencesg_c[i] = 1 / num_valid * norm(g[valid] .- baseline_c[valid], 1)
 end;
 
 pt = 4 / 3;
@@ -134,9 +121,8 @@ ax1 = Axis(
     fig[2, 1],
     xlabel=L"n",
     ylabel="Mean Absolute Error",
-    title="Log Transform",
+    title=L"$\mathcal{L}[\exp](x):  x \in [$-10$,$-1$) \cup ($1$, $10$] $",
     yscale=log10,
-    xscale=log10,
 );
 
 
@@ -146,18 +132,16 @@ scatter!(ax1, [0], [0], visible=false);
 lines!(ax1, [0], [0], visible=false);
 lines!(ax1, [0], [0], visible=false);
 
-i = scatter!(ax1, r[1:7:end], differencesi_log[1:7:end]);
-c = scatter!(ax1, r[4:7:end], differencesc_log[4:7:end]);
-g = lines!(ax1, r, differencesg_log);
+i = scatter!(ax1, r[1:2:end], differencesi_log[1:2:end]);
+c = scatter!(ax1, r[4:2:end], differencesc_log[4:2:end]);
 
 
 ax2 = Axis(
     fig[1, 1],
     xlabel=L"n",
     ylabel="Mean Absolute Error",
-    title="Cauchy Transform",
+    title=L"|$\mathcal{C}[\exp](x)|:  x \in [$-10$,$-1$) \cup ($1$, $10$] $",
     yscale=log10,
-    xscale=log10,
 );
 
 lines!(ax2, r, differencesf_c);
@@ -166,14 +150,13 @@ scatter!(ax2, [0], [0], visible=false);
 lines!(ax2, [0], [0], visible=false);
 lines!(ax2, [0], [0], visible=false);
 
-scatter!(ax2, r[1:7:end], differencesi_c[1:7:end]);
-scatter!(ax2, r[4:7:end], differencesc_c[4:7:end]);
-lines!(ax2, r, differencesg_c);
+scatter!(ax2, r[1:2:end], differencesi_c[1:2:end]);
+scatter!(ax2, r[4:2:end], differencesc_c[4:2:end]);
 
 Legend(
     fig[3, 1],
-    [f, i, c, g],
-    ["forward", "forward-inplace", "clenshaw", "gauss-legendre"],
+    [f, i, c],
+    ["forward", "forward-inplace", "clenshaw"],
     orientation=:horizontal,
     framevisible=false,
     groupgap=50

@@ -11,7 +11,7 @@ function cauchytransforms(n)
     inplace = Vector{Float64}(undef, length(x))
     clenshaw = Vector{Float64}(undef, length(x))
 
-    ff = Float64.(collect(f_N.args[2][1:n]))
+    ff = transform(P[:, 1:n], exp);
 
     forward .= abs.(FixedCauchy(n, x, ff))
     inplace .= abs.(InplaceCauchy(n, x, ff))
@@ -33,7 +33,7 @@ set_theme!(
     fonts=(regular="charter", bold="charter bold", italic="charter italic", bold_italic="charter bold italic"),
 );
 
-fig = Figure(size=(6.28inch, 3inch));
+fig = Figure(size=(6.28inch, 2.5inch));
 
 ax = Axis(
     fig[1, 1],
@@ -43,12 +43,12 @@ ax = Axis(
 
 forward, inplace, clenshaw = cauchytransforms(100_000);
 
-lines!(ax, real(x), baseline_c, linewidth=2);
+b = lines!(ax, real(x), baseline_c, linewidth=2);
 # shift the colours
 scatter!(ax, [0], [0], visible=false);
-scatter!(ax, real(x)[1:90:end], forward[1:90:end]);
-scatter!(ax, real(x)[30:90:end], inplace[30:90:end]);
-scatter!(ax, real(x)[60:90:end], clenshaw[60:90:end]);
+f = scatter!(ax, real(x)[1:90:end], forward[1:90:end]);
+i = scatter!(ax, real(x)[30:90:end], inplace[30:90:end]);
+c = scatter!(ax, real(x)[60:90:end], clenshaw[60:90:end]);
 
 Legend(
     fig[2, 1],
