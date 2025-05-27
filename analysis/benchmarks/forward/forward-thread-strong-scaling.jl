@@ -24,7 +24,7 @@ fig = Figure(size=(6.27inch, 2.5inch), padding=0);
 ax = Axis(
     fig[1, 1],
     xlabel="Threads",
-    ylabel="Speedup",
+    ylabel="Speed-up",
     xticks=(2:2:8),
     yticks=(0:2),
     limits=(nothing, (0, 2.5))
@@ -33,7 +33,7 @@ ax = Axis(
 d = scatterlines!(ax, threads, threads, linestyle=:dot);
 r = scatterlines!(ax, threads, row);
 c = scatterlines!(ax, threads, column);
-axislegend(ax, [d, r, c], ["Ideal", "Row-wise", "Column-wise"], position=:rt, orientation=:vertical, backgroundcolor=(:white, 0.85));
+axislegend(ax, [d, r, c], ["ideal", "row-wise", "column-wise"], position=:rt, orientation=:vertical, backgroundcolor=(:white, 0.85));
 
 fig
 

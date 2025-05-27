@@ -50,11 +50,11 @@ i_r = scatterlines!(ax, threads, inplace_r, linestyle=(:dot, :dense));
 Legend(
     fig[2, 1],
     [[d], [c_r, c_c], [i_r, i_c]],
-    [[""], ["row-wise", "column-wise"], ["row-wise", "column-wise"]],
-    ["ideal", "clenshaw", "forward-inplace"],
+    [["ideal"], ["row-wise", "column-wise"], ["row-wise", "column-wise"]],
+    ["", "clenshaw", "forward-inplace"],
     orientation=:horizontal,
     framevisible=false,
-    groupgap=20
+    groupgap=10
 );
 
 fig

@@ -31,7 +31,7 @@ ax = Axis(
 d = scatterlines!(ax, threads, ones(5), linestyle=:dot);
 r = scatterlines!(ax, threads, row);
 c = scatterlines!(ax, threads, column);
-axislegend(ax, [d, r, c], ["Ideal", "Row-wise", "Column-wise"], position=:lb, orientation=:vertical, backgroundcolor=(:white, 0.85));
+axislegend(ax, [d, r, c], ["ideal", "row-wise", "column-wise"], position=:lb, orientation=:vertical, backgroundcolor=(:white, 0.85));
 
 fig
 

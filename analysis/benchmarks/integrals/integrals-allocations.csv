@@ -1,6 +1,0 @@
-Method,Cauchy,LogKernel
-clenshaw,
-forward-inplace,
-forward,
-FastGaussQuadrature,
-SingularIntegrals,

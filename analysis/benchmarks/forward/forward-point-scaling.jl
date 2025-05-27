@@ -38,7 +38,7 @@ d = scatterlines!(ax, points, distributed);
 Legend(
     fig[2, 1],
     [f, g, c, r, d],
-    ["Control", "GPU", "Column (8)", "Row (2)", "Distributed (4)"],
+    ["control", "GPU", "column-wise", "row-wise", "distributed"],
     orientation=:horizontal,
     framevisible=false
 );

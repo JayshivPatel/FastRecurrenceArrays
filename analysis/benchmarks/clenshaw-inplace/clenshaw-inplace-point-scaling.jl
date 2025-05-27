@@ -52,7 +52,7 @@ c_i = scatterlines!(ax, points, column_i, color=c_color, linestyle=:dot);
 Legend(
     fig[2, 1],
     [[f_c, g_c, r_c, c_c], [f_i, g_i, r_i, c_i]],
-    [["Control", "GPU", "Row-wise (4)", "Column-wise (8)"], ["Control", "GPU", "Row-wise (4)", "Column-wise (8)"]],
+    [["control", "GPU", "row-wise", "column-wise"], ["control", "GPU", "row-wise", "column-wise"]],
     ["clenshaw", "forward-inplace"],
     orientation=:horizontal,
     framevisible=false,

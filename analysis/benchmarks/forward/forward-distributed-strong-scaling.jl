@@ -22,14 +22,14 @@ fig = Figure(size=(6.27inch, 2inch));
 ax = Axis(
     fig[1, 1],
     xlabel="Workers",
-    ylabel="Speedup",
+    ylabel="Speed-up",
     xticks=(1:4)
 );
 
 d = scatterlines!(ax, workers, workers, linestyle=:dot);
 w = scatterlines!(ax, workers, time);
 
-axislegend(ax, [d, w], ["Ideal", "Distributed"], position=:lt, orientation=:vertical, backgroundcolor=(:white, 0.85));
+axislegend(ax, [d, w], ["ideal", "distributed"], position=:lt, orientation=:vertical, backgroundcolor=(:white, 0.85));
 
 fig
 

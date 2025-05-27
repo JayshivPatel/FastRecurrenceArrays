@@ -30,7 +30,7 @@ ax = Axis(
 d = scatterlines!(ax, workers, ones(4), linestyle=:dot);
 w = scatterlines!(ax, workers, time);
 
-axislegend(ax, [d, w], ["Ideal", "Distributed"], position=:lb, orientation=:vertical, backgroundcolor=(:white, 0.85));
+axislegend(ax, [d, w], ["ideal", "distributed"], position=:lb, orientation=:vertical, backgroundcolor=(:white, 0.85));
 
 fig
 
