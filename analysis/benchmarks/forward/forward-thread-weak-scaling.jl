@@ -6,8 +6,8 @@ threads = df[!, "Threads"]
 row = df[!, "Row-wise"]
 column = df[!, "Column-wise"]
 
-row = row[1] ./ row
-column = column[1] ./ column
+row = (row[1] .* threads) ./ (row)
+column = (column[1] .* threads) ./ (column)
 
 pt = 4 / 3;
 inch = 96;
@@ -24,14 +24,15 @@ fig = Figure(size=(6.27inch, 2.5inch), padding=0);
 ax = Axis(
     fig[1, 1],
     xlabel="Threads",
-    ylabel="Efficiency",
+    ylabel="Scaled speed-up",
     xticks=(2:2:8),
+    yticks=(0:2:8)
 );
 
-d = scatterlines!(ax, threads, ones(5), linestyle=:dot);
+d = scatterlines!(ax, threads, threads, linestyle=:dot);
 r = scatterlines!(ax, threads, row);
 c = scatterlines!(ax, threads, column);
-axislegend(ax, [d, r, c], ["ideal", "row-wise", "column-wise"], position=:lb, orientation=:vertical, backgroundcolor=(:white, 0.85));
+axislegend(ax, [d, r, c], ["ideal", "row-wise", "column-wise"], position=:lt, orientation=:vertical, backgroundcolor=(:white, 0.85));
 
 fig
 

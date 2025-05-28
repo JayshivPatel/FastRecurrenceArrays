@@ -10,11 +10,11 @@ clenshaw_c = dfc[!, "Column-wise"];
 inplace_r = dfi[!, "Row-wise"];
 inplace_c = dfi[!, "Column-wise"];
 
-clenshaw_r = clenshaw_r[1] ./ clenshaw_r
-clenshaw_c = clenshaw_c[1] ./ clenshaw_c
+clenshaw_r = (clenshaw_r[1] .* threads) ./ clenshaw_r
+clenshaw_c = (clenshaw_c[1] .* threads) ./ clenshaw_c
 
-inplace_r = inplace_r[1] ./ inplace_r
-inplace_c = inplace_c[1] ./ inplace_c
+inplace_r = (inplace_r[1] .* threads) ./ inplace_r
+inplace_c = (inplace_c[1] .* threads) ./ inplace_c
 
 pt = 4 / 3;
 inch = 96;
@@ -31,11 +31,11 @@ fig = Figure(size=(6.2inch, 3inch));
 ax = Axis(
     fig[1, 1],
     xlabel="Threads",
-    ylabel="Efficiency",
+    ylabel="Scaled speed-up",
     xticks=(2:2:8),
 );
 
-d = scatterlines!(ax, threads, ones(5), linestyle=:dot);
+d = scatterlines!(ax, threads, threads, linestyle=:dot);
 c_c = scatterlines!(ax, threads, clenshaw_c);
 i_c = scatterlines!(ax, threads, inplace_c);
 

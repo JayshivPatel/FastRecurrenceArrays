@@ -26,14 +26,13 @@ ax = Axis(
     xlabel="Threads",
     ylabel="Speed-up",
     xticks=(2:2:8),
-    yticks=(0:2),
-    limits=(nothing, (0, 2.5))
+    yticks=(0:2:8)
 );
 
 d = scatterlines!(ax, threads, threads, linestyle=:dot);
 r = scatterlines!(ax, threads, row);
 c = scatterlines!(ax, threads, column);
-axislegend(ax, [d, r, c], ["ideal", "row-wise", "column-wise"], position=:rt, orientation=:vertical, backgroundcolor=(:white, 0.85));
+axislegend(ax, [d, r, c], ["ideal", "row-wise", "column-wise"], position=:lt, orientation=:vertical, backgroundcolor=(:white, 0.85));
 
 fig
 

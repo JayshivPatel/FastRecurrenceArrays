@@ -33,7 +33,7 @@ ax = Axis(
     xlabel="Threads",
     ylabel="Speed-up",
     xticks=(2:2:8),
-    limits=(nothing, (0, 5))
+    yticks=(0:2:8)
 );
 
 d = scatterlines!(ax, threads, threads, linestyle=:dot);

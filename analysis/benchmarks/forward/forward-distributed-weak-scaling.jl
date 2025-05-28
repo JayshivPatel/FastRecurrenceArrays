@@ -5,7 +5,7 @@ df = CSV.read("./analysis/benchmarks/forward/worker-weak-scaling.csv", DataFrame
 workers = df[!, "Workers"]
 time = df[!, "Distributed"]
 
-time = time[1] ./ time
+time = (time[1] .* workers) ./ (time)
 
 pt = 4 / 3;
 inch = 96;
@@ -22,15 +22,14 @@ fig = Figure(size=(6.27inch, 2inch));
 ax = Axis(
     fig[1, 1],
     xlabel="Workers",
-    ylabel="Efficiency",
+    ylabel="Scaled speed-up",
     xticks=(1:4),
-    yticks=(0:0.2:1)
 );
 
-d = scatterlines!(ax, workers, ones(4), linestyle=:dot);
+d = scatterlines!(ax, workers, workers, linestyle=:dot);
 w = scatterlines!(ax, workers, time);
 
-axislegend(ax, [d, w], ["ideal", "distributed"], position=:lb, orientation=:vertical, backgroundcolor=(:white, 0.85));
+axislegend(ax, [d, w], ["ideal", "distributed"], position=:lt, orientation=:vertical, backgroundcolor=(:white, 0.85));
 
 fig
 
