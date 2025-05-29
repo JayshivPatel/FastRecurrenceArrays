@@ -11,7 +11,7 @@ import SingularIntegrals: stieltjes
 export FixedRecurrenceArray, ThreadedRecurrenceArray, PartitionedRecurrenceArray, PartitionedArray, GPURecurrenceArray
 export FixedClenshaw, ThreadedClenshaw, GPUClenshaw
 export ForwardInplace, ThreadedInplace, GPUInplace
-export FixedCauchy, FixedLogKernel, ClenshawCauchy, ThreadedClenshawCauchy, GPUClenshawCauchy, ClenshawLogKernel, ThreadedClenshawLogKernel, GPUClenshawLogKernel, InplaceCauchy, ThreadedInplaceCauchy, GPUInplaceCauchy, InplaceLogKernel, ThreadedInplaceLogKernel, GPUInplaceLogKernel
+export FixedCauchy, ThreadedCauchy, GPUFixedCauchy, FixedLogKernel, ThreadedLogKernel, GPUFixedLogKernel, ClenshawCauchy, ThreadedClenshawCauchy, GPUClenshawCauchy, ClenshawLogKernel, ThreadedClenshawLogKernel, GPUClenshawLogKernel, InplaceCauchy, ThreadedInplaceCauchy, GPUInplaceCauchy, InplaceLogKernel, ThreadedInplaceLogKernel, GPUInplaceLogKernel
 
 include("forward.jl")
 include("clenshaw.jl")

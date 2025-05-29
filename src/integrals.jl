@@ -1,6 +1,3 @@
-
-
-
 # Forward
 
 function FixedCauchy(n::Integer, x::AbstractVector, f::AbstractVector)
@@ -8,9 +5,29 @@ function FixedCauchy(n::Integer, x::AbstractVector, f::AbstractVector)
     return transpose(FixedRecurrenceArray(x, rec_P, n, input_data)) * f
 end
 
+function ThreadedCauchy(n::Integer, x::AbstractVector, f::AbstractVector, dims::Union{Val{1}, Val{2}})
+    rec_P, input_data = cauchy_init(n, x)
+    return transpose(ThreadedRecurrenceArray(x, rec_P, n, input_data, dims)) * f
+end
+
+function GPUFixedCauchy(n::Integer, x::AbstractVector, f::AbstractVector)
+    rec_P, input_data = cauchy_init(n, x)
+    return transpose(GPURecurrenceArray(x, rec_P, n, input_data)) * CUDA.CuArray(f)
+end
+
 function FixedLogKernel(n::Integer, x::AbstractVector, f::AbstractVector)
     rec_P, input_data = logkernel_init(n, x)
     return real.(transpose(FixedRecurrenceArray(x, rec_P, n, input_data)) * f)
+end
+
+function ThreadedLogKernel(n::Integer, x::AbstractVector, f::AbstractVector, dims::Union{Val{1}, Val{2}})
+    rec_P, input_data = logkernel_init(n, x)
+    return real.(transpose(ThreadedRecurrenceArray(x, rec_P, n, input_data, dims)) * f)
+end
+
+function GPUFixedLogKernel(n::Integer, x::AbstractVector, f::AbstractVector)
+    rec_P, input_data = logkernel_init(n, x)
+    return real.(transpose(GPURecurrenceArray(x, rec_P, n, input_data)) * CUDA.CuArray(f))
 end
 
 # Clenshaw

@@ -121,7 +121,7 @@ ax1 = Axis(
     fig[2, 1],
     xlabel=L"n",
     ylabel="Mean Absolute Error",
-    title=L"$\mathcal{L}[\exp](x):  x \in [$-10$,$-1$) \cup ($1$, $10$] $",
+    title=L"\mathcal{L}[\exp](x):  x \in [-10,-1) \cup (1, 10]",
     yscale=log10,
 );
 
@@ -133,14 +133,14 @@ lines!(ax1, [0], [0], visible=false);
 lines!(ax1, [0], [0], visible=false);
 
 i = scatter!(ax1, r[1:2:end], differencesi_log[1:2:end]);
-c = scatter!(ax1, r[4:2:end], differencesc_log[4:2:end]);
+c = scatter!(ax1, r[2:2:end], differencesc_log[2:2:end]);
 
 
 ax2 = Axis(
     fig[1, 1],
     xlabel=L"n",
     ylabel="Mean Absolute Error",
-    title=L"|$\mathcal{C}[\exp](x)|:  x \in [$-10$,$-1$) \cup ($1$, $10$] $",
+    title=L"|\mathcal{C}[\exp](x)|:  x \in [-10,-1) \cup (1, 10]",
     yscale=log10,
 );
 
@@ -151,7 +151,7 @@ lines!(ax2, [0], [0], visible=false);
 lines!(ax2, [0], [0], visible=false);
 
 scatter!(ax2, r[1:2:end], differencesi_c[1:2:end]);
-scatter!(ax2, r[4:2:end], differencesc_c[4:2:end]);
+scatter!(ax2, r[2:2:end], differencesc_c[2:2:end]);
 
 Legend(
     fig[3, 1],

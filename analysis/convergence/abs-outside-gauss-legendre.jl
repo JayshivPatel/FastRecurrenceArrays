@@ -50,7 +50,7 @@ ax1 = Axis(
     fig[2, 1],
     xlabel=L"n",
     ylabel="Mean Absolute Error",
-    title=L"$\mathcal{L}[\exp](x):  x \in [$-10$,$-1$) \cup ($1$, $10$] $",
+    title=L"\mathcal{L}[\exp](x):  x \in [-10,-1) \cup (1, 10]",
     yscale=log10,
     xscale=log10,
 );
@@ -62,7 +62,7 @@ ax2 = Axis(
     fig[1, 1],
     xlabel=L"n",
     ylabel="Mean Absolute Error",
-    title=L"|$\mathcal{C}[\exp](x)|:  x \in [$-10$,$-1$) \cup ($1$, $10$] $",
+    title=L"|\mathcal{C}[\exp](x)|:  x \in [-10,-1) \cup (1, 10]",
     yscale=log10,
     xscale=log10,
 );

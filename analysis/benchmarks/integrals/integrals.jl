@@ -1,11 +1,16 @@
 using CairoMakie, CSV, DataFrames;
 
-df = CSV.read("./analysis/benchmarks/integrals/integrals-time.csv", DataFrame);
+df = CSV.read("./analysis/benchmarks/integrals/integrals.csv", DataFrame);
 
 cauchy = df[!, "Cauchy"];
-log = df[!, "LogKernel"];
+logs = df[!, "LogKernel"];
 
-height = vec(permutedims(hcat(cauchy, log)));
+height = vec(permutedims(hcat(cauchy, logs)));
+
+cauchy_speedup = (cauchy[end] ./ cauchy)
+logs_speedup = logs[end] ./ logs
+
+speedups = vec(permutedims(hcat(cauchy_speedup, logs_speedup)));
 
 table = (
     categories=[1, 1, 2, 2, 3, 3, 4, 4, 5, 5],
@@ -42,11 +47,11 @@ b = barplot!(
     color=table.groups,
     direction=:x,
     colormap=[c1, c2],
-    bar_labels=:y,
+    bar_labels=speedups,
     flip_labels_at=0.85,
     color_over_background=:black,
     color_over_bar=:white,
-    label_formatter = x -> round(x, sigdigits=3)
+    label_formatter=x -> round(x, digits=2)
 );
 
 legend = Legend(
