@@ -51,7 +51,7 @@ b = barplot!(
     flip_labels_at=0.85,
     color_over_background=:black,
     color_over_bar=:white,
-    label_formatter=x -> round(x, digits=2)
+    label_formatter=x -> string(round(x, digits=1)) * "x"
 );
 
 legend = Legend(
