@@ -1,7 +1,7 @@
 using FastRecurrenceArrays, RecurrenceRelationshipArrays, SingularIntegrals,
     ClassicalOrthogonalPolynomials, LinearAlgebra, CairoMakie, FastGaussQuadrature;
 
-x = ComplexF64.(logrange(1, 100, 1000));
+x = ComplexF64.(logrange(1, 1E5, 1000));
 
 P = Legendre();
 f_N = expand(P, exp);
@@ -33,18 +33,18 @@ set_theme!(
     fonts=(regular="charter", bold="charter bold", italic="charter italic", bold_italic="charter bold italic"),
 );
 
-fig = Figure(size=(6.4inch, 8inch));
+fig = Figure(size=(6.45inch, 8inch));
 
 ax1 = Axis(
     fig[1, 1],
     xlabel=L"x",
     ylabel=L"|\mathcal{C}[\exp](x)|",
-    title=L"$n = 10$",
+    title=L"$n = 3$",
     xscale=log10,
     yscale=log10
 );
 
-forward, inplace, clenshaw = cauchytransforms(10);
+forward, inplace, clenshaw = cauchytransforms(3);
 
 lines!(ax1, real(x), baseline_c, linewidth=2);
 # shift the colours
@@ -57,12 +57,12 @@ ax2 = Axis(
     fig[2, 1],
     xlabel=L"x",
     ylabel=L"|\mathcal{C}[\exp](x)|",
-    title=L"$n = 15$",
+    title=L"$n = 4$",
     xscale=log10,
     yscale=log10
 );
 
-forward, inplace, clenshaw = cauchytransforms(15);
+forward, inplace, clenshaw = cauchytransforms(4);
 
 lines!(ax2, real(x), baseline_c, linewidth=2);
 scatter!(ax2, [0], [0], visible=false);
@@ -75,12 +75,12 @@ ax3 = Axis(
     fig[3, 1],
     xlabel=L"x",
     ylabel=L"|\mathcal{C}[\exp](x)|",
-    title=L"$n = 20$",
+    title=L"$n = 5$",
     xscale=log10,
     yscale=log10
 );
 
-forward, inplace, clenshaw = cauchytransforms(20);
+forward, inplace, clenshaw = cauchytransforms(5);
 
 lines!(ax3, real(x), baseline_c, linewidth=2);
 scatter!(ax3, [0], [0], visible=false);
@@ -92,12 +92,12 @@ ax4 = Axis(
     fig[4, 1],
     xlabel=L"x",
     ylabel=L"|\mathcal{C}[\exp](x)|",
-    title=L"$n = 25$",
+    title=L"$n = 10$",
     xscale=log10,
     yscale=log10
 );
 
-forward, inplace, clenshaw = cauchytransforms(25);
+forward, inplace, clenshaw = cauchytransforms(10);
 
 b = lines!(ax4, real(x), baseline_c, linewidth=2);
 scatter!(ax4, [0], [0], visible=false);
