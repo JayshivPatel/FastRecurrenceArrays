@@ -33,8 +33,9 @@ fig = Figure(size=(6.27inch, 3inch));
 ax = Axis(
     fig[1, 1],
     xlabel="Time [s]",
-    yticks=(1:5, ["clenshaw", "forward-inplace", "forward", "gausslegendre", "baseline"]),
+    yticks=(1:5, ["clenshaw", "forward_inplace", "forward'", "gausslegendre", "baseline"]),
     xscale=log10,
+    yticklabelfont="Courier",
 );
 
 c1 = Makie.wong_colors()[2];

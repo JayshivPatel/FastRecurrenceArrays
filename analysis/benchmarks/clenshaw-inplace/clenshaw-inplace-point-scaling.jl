@@ -53,11 +53,12 @@ Legend(
     fig[2, 1],
     [[f_c, g_c, r_c, c_c], [f_i, g_i, r_i, c_i]],
     [["control", "GPU", "row-wise", "column-wise"], ["control", "GPU", "row-wise", "column-wise"]],
-    ["clenshaw", "forward-inplace"],
+    ["clenshaw", "forward_inplace"],
     orientation=:horizontal,
     framevisible=false,
     nbanks=2,
-    groupgap=30
+    groupgap=30,
+    titlefont="Courier"
 )
 
 save("clenshaw-inplace-point-scaling.svg", fig)

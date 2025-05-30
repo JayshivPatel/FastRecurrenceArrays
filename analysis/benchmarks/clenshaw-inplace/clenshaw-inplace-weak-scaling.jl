@@ -51,10 +51,11 @@ Legend(
     fig[2, 1],
     [[d], [c_r, c_c], [i_r, i_c]],
     [["ideal"], ["row-wise", "column-wise"], ["row-wise", "column-wise"]],
-    ["", "clenshaw", "forward-inplace"],
+    ["", "clenshaw", "forward_inplace"],
     orientation=:horizontal,
     framevisible=false,
-    groupgap=10
+    titlefont="Courier",
+    groupgap=19
 );
 
 fig

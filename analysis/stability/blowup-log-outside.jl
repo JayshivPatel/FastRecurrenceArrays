@@ -10,8 +10,8 @@ function logtransforms(n)
     forward = Vector{Float64}(undef, length(x))
     inplace = Vector{Float64}(undef, length(x))
     clenshaw = Vector{Float64}(undef, length(x))
-    
-    ff = transform(P[:, 1:n], exp);
+
+    ff = transform(P[:, 1:n], exp)
 
     forward .= abs.(FixedLogKernel(n, x, ff))
     inplace .= abs.(InplaceLogKernel(n, x, ff))
@@ -33,7 +33,7 @@ set_theme!(
     fonts=(regular="charter", bold="charter bold", italic="charter italic", bold_italic="charter bold italic"),
 );
 
-fig = Figure(size=(6.28inch, 8inch));
+fig = Figure(size=(6.4inch, 8inch));
 
 ax1 = Axis(
     fig[1, 1],
@@ -108,9 +108,10 @@ c = scatter!(ax4, real(x)[60:90:end], clenshaw[60:90:end]);
 Legend(
     fig[5, 1],
     [b, f, i, c],
-    ["baseline", "forward", "forward-inplace", "clenshaw"],
+    ["baseline", "forward'", "forward_inplace", "clenshaw"],
     orientation=:horizontal,
     framevisible=false,
+    labelfont="Courier",
 );
 
 fig;
