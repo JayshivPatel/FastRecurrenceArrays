@@ -20,7 +20,7 @@ fig = Figure(size=(6.5inch, 3inch));
 ax1 = Axis(
     fig[1, 1],
     xlabel=L"n",
-    ylabel=L"|\mathbf{\mathrm{f}}_n|",
+    ylabel=L"|f_n|",
     yscale=log10,
 );
 

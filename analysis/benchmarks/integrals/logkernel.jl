@@ -1,7 +1,7 @@
 using FastRecurrenceArrays, RecurrenceRelationshipArrays, SingularIntegrals, 
     ClassicalOrthogonalPolynomials, LinearAlgebra, FastGaussQuadrature, BenchmarkTools;
 
-x = range(ComplexF32(-10.0), ComplexF32(10.0), 500_000);
+x = range(ComplexF64(-10.0), ComplexF64(10.0), 500_000);
 
 f_g(x, z) = log(z-x)*exp(x);
 
@@ -17,7 +17,7 @@ println("Log Transform Baseline");
 run(@benchmarkable collect(log.(abs.($x .- $axes(P, 1)')) * $f_N))
 
 println("Log Transform FastGaussQuadrature");
-output = Vector{ComplexF32}(undef, 500_000);
+output = Vector{ComplexF64}(undef, 500_000);
 function gauss(x)
     x_g, w_g = gausslegendre(n_gauss);
     for (i, x₀) in enumerate(x)
@@ -26,7 +26,7 @@ function gauss(x)
 end;
 run(@benchmarkable gauss($x))
 
-ff = Float32.(transform(P[:, 1:n_fast], exp));
+ff = Float64.(transform(P[:, 1:n_fast], exp));
 
 println("Log Transform Forward");
 run(@benchmarkable FixedLogKernel($n_fast, $x, $ff) samples = 100 seconds = 500)

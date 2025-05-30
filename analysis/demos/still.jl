@@ -41,7 +41,7 @@ st = cauchytransform();
 lt = logtransform();
 
 
-ax1 = Axis3(fig[1, 1], xlabel=L"Re(z)", ylabel=L"Im(z)", zlabel="", title=L"\text{Re}\{\mathcal{C}[\cos](z)\}");
+ax1 = Axis3(fig[1, 1], xlabel=L"Re(z)", ylabel=L"Im(z)", zlabel="", title=L"\text{Re}(\mathcal{C}[\cos](z))");
 surface!(ax1, xs, ys, st, colormap=:plasma);
 
 ax2 = Axis3(fig[1, 2], xlabel=L"Re(z)", ylabel=L"Im(z)", zlabel="", title=L"\mathcal{L}[\cos](z)");
