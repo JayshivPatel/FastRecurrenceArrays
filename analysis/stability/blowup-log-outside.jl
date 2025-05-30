@@ -108,7 +108,7 @@ c = scatter!(ax4, real(x)[60:90:end], clenshaw[60:90:end]);
 Legend(
     fig[5, 1],
     [b, f, i, c],
-    ["baseline", "forward'", "forward_inplace", "clenshaw"],
+    ["baseline", "forward", "forward_inplace", "clenshaw"],
     orientation=:horizontal,
     framevisible=false,
     labelfont="TeX Gyre Cursor",

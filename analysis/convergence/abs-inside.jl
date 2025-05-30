@@ -156,7 +156,7 @@ scatter!(ax2, r[2:2:end], differencesc_c[2:2:end]);
 Legend(
     fig[3, 1],
     [f, i, c],
-    ["forward'", "forward_inplace", "clenshaw"],
+    ["forward", "forward_inplace", "clenshaw"],
     orientation=:horizontal,
     framevisible=false,
     labelfont="TeX Gyre Cursor",
