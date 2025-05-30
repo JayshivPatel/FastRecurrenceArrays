@@ -35,7 +35,7 @@ ax = Axis(
     xlabel="Time [s]",
     yticks=(1:5, ["clenshaw", "forward_inplace", "forward'", "gausslegendre", "baseline"]),
     xscale=log10,
-    yticklabelfont="Courier",
+    yticklabelfont="TeX Gyre Cursor",
 );
 
 c1 = Makie.wong_colors()[2];

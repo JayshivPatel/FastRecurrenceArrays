@@ -111,7 +111,7 @@ Legend(
     ["baseline", "forward'", "forward_inplace", "clenshaw"],
     orientation=:horizontal,
     framevisible=false,
-    labelfont="Courier",
+    labelfont="TeX Gyre Cursor",
 );
 
 fig;

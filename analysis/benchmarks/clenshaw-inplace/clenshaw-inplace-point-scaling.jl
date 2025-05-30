@@ -58,7 +58,7 @@ Legend(
     framevisible=false,
     nbanks=2,
     groupgap=30,
-    titlefont="Courier"
+    titlefont="TeX Gyre Cursor"
 )
 
 save("clenshaw-inplace-point-scaling.svg", fig)

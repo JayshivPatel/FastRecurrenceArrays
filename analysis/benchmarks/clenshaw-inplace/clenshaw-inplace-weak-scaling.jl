@@ -54,7 +54,7 @@ Legend(
     ["", "clenshaw", "forward_inplace"],
     orientation=:horizontal,
     framevisible=false,
-    titlefont="Courier",
+    titlefont="TeX Gyre Cursor",
     groupgap=19
 );
 
