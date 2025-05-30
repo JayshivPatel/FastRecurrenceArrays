@@ -26,12 +26,12 @@ set_theme!(
 P = Legendre();
 
 function cauchytransform()
-    st = real.(InplaceCauchy(N, mesh, ff))
+    st = real.(ClenshawCauchy(N, mesh, ff))
     return reshape(st, side_length, side_length)
 end;
 
 function logtransform()
-    lt = InplaceLogKernel(N, mesh, ff)
+    lt = ClenshawLogKernel(N, mesh, ff)
     return reshape(lt, side_length, side_length)
 end;
 
