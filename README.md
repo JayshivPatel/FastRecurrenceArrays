@@ -38,7 +38,8 @@ julia> @time GPURecurrenceArray(x, rec_U, N);
 └ @ FastRecurrenceArrays ~/.julia/packages/FastRecurrenceArrays/y4Dpk/src/forward.jl:137
   0.004941 seconds (3.46 k allocations: 15.333 MiB)
 
-# Additionally, a cluster of computers running Julia can be used to compute these in a distributed manner
+# Additionally, a cluster of computers running Julia can be used to compute these in a distributed manner.
+# As an example, we use Docker containers on the localhost, connecting to them via ssh.
 
 julia> using Distributed
 
