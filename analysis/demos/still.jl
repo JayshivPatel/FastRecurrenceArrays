@@ -42,11 +42,11 @@ lt = logtransform();
 
 
 ax1 = Axis3(fig[1, 1], xlabel=L"Re(z)", ylabel=L"Im(z)", zlabel="", title=L"\text{Re}(\mathcal{C}[\cos](z))");
-surface!(ax1, xs, ys, st, colormap=:plasma);
+surface!(ax1, xs, ys, st, colormap=:plasma, rasterize = 10);
 
 ax2 = Axis3(fig[1, 2], xlabel=L"Re(z)", ylabel=L"Im(z)", zlabel="", title=L"\mathcal{L}[\cos](z)");
-surface!(ax2, xs, ys, lt, colormap=:viridis);
+surface!(ax2, xs, ys, lt, colormap=:viridis, rasterize = 10);
 
 fig
 
-save("transforms.png", fig)
+save("transforms.svg", fig)
