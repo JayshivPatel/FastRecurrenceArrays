@@ -59,7 +59,7 @@ end
 
 function GPUClenshawLogKernel(n::Integer, x::AbstractVector, f::AbstractVector)
     (A, B, C), data = logkernel_init(n + 2, x)
-    return real.(f[1] * view(data, 1, :) .+ GPUClenshaw(f[2:end], (Float32.(A[2:end]), Float32.(B[2:end]), Float32.(C[2:end])), x, view(data, 2, :), view(data, 3, :)))
+    return real.(CUDA.CuArray(f[1] * view(data, 1, :)) .+ GPUClenshaw(f[2:end], (Float32.(A[2:end]), Float32.(B[2:end]), Float32.(C[2:end])), x, view(data, 2, :), view(data, 3, :)))
 end
 
 # Inplace
